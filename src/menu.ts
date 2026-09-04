@@ -73,7 +73,10 @@ export async function checkMenusAndNotify(
 ): Promise<void> {
   const fetcher = dependencies.fetch ?? fetch;
   const push = dependencies.push ?? sendWebPush;
-  const date = taipeiDate(dependencies.now);
+  const now = dependencies.now ?? new Date();
+  const date = taipeiDate(now);
+  const retentionCutoff = taipeiDate(new Date(now.getTime() - 30 * 24 * 60 * 60 * 1000));
+  await env.DB.prepare("DELETE FROM notification_log WHERE date < ?").bind(retentionCutoff).run();
   const schools = await env.DB.prepare(`SELECT DISTINCT s.school_id
     FROM subscriptions s
     LEFT JOIN notification_log n ON n.school_id = s.school_id AND n.date = ?
