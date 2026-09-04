@@ -5,10 +5,10 @@
 
 ## 2. school-subscription 能力
 
-- [ ] 2.1 實作 `POST /api/subscribe`，落實 Subscribe to a school：收到 schoolId + push subscription 時 upsert `subscriptions` 表（依 endpoint unique）；驗證：curl 測試新 endpoint 建立新列、既有 endpoint 換 school_id 時更新而非新增列
-- [ ] 2.2 實作 `POST /api/unsubscribe`，落實 Unsubscribe from a school：刪除對應 endpoint 記錄，對未知 endpoint 回成功不報錯；驗證：curl 分別測試已知/未知 endpoint 兩種情境
-- [ ] 2.3 在 subscribe endpoint 加上欄位白名單，落實 Minimal data collection：忽略 payload 中除 schoolId/push subscription 外的欄位；驗證：送出含多餘欄位的 payload，檢查 D1 記錄未包含這些欄位
-- [ ] 2.4 依 訂閱失效自動清除 決策，實作 Automatic removal of invalid subscriptions：Web Push 回 410 時 `failure_count` +1，達 3 次刪除該筆訂閱，成功送達時歸零；驗證：模擬三次連續 410 後該筆記錄消失、模擬失敗後接一次成功歸零計數
+- [x] 2.1 實作 `POST /api/subscribe`，落實 Subscribe to a school：收到 schoolId + push subscription 時 upsert `subscriptions` 表（依 endpoint unique）；驗證：curl 測試新 endpoint 建立新列、既有 endpoint 換 school_id 時更新而非新增列
+- [x] 2.2 實作 `POST /api/unsubscribe`，落實 Unsubscribe from a school：刪除對應 endpoint 記錄，對未知 endpoint 回成功不報錯；驗證：curl 分別測試已知/未知 endpoint 兩種情境
+- [x] 2.3 在 subscribe endpoint 加上欄位白名單，落實 Minimal data collection：忽略 payload 中除 schoolId/push subscription 外的欄位；驗證：送出含多餘欄位的 payload，檢查 D1 記錄未包含這些欄位
+- [x] 2.4 依 訂閱失效自動清除 決策，實作 Automatic removal of invalid subscriptions：Web Push 回 410 時 `failure_count` +1，達 3 次刪除該筆訂閱，成功送達時歸零；驗證：模擬三次連續 410 後該筆記錄消失、模擬失敗後接一次成功歸零計數
 
 ## 3. menu-check-and-notify 能力
 
