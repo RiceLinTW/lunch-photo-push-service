@@ -12,11 +12,11 @@
 
 ## 3. menu-check-and-notify 能力
 
-- [ ] 3.1 依 排程與去重流程 決策實作 Cron Trigger 主流程，落實 Scheduled menu check scoped to pending schools：先過濾掉今天已有 `notification_log` 的學校再查來源 API；驗證：模擬今天已通知的 school_id，下一輪不觸發來源 API 呼叫（mock fetch 呼叫次數為 0）
-- [ ] 3.2 實作 Photo-published detection and daily dedup：查到至少一道菜 `PicturePath` 非空時寫入 `notification_log` 並發送推播；照片皆未上傳時不寫入不推播；驗證：兩種情境各一則單元測試（有照片寫入+推播一次、無照片不寫入不推播）
-- [ ] 3.3 組出 Notification payload content：推播 payload 含 title/body/url，url 帶 schoolId 與日期查詢參數；驗證：檢查產生的 payload JSON 結構符合規格
+- [x] 3.1 依 排程與去重流程 決策實作 Cron Trigger 主流程，落實 Scheduled menu check scoped to pending schools：先過濾掉今天已有 `notification_log` 的學校再查來源 API；驗證：模擬今天已通知的 school_id，下一輪不觸發來源 API 呼叫（mock fetch 呼叫次數為 0）
+- [x] 3.2 實作 Photo-published detection and daily dedup：查到至少一道菜 `PicturePath` 非空時寫入 `notification_log` 並發送推播；照片皆未上傳時不寫入不推播；驗證：兩種情境各一則單元測試（有照片寫入+推播一次、無照片不寫入不推播）
+- [x] 3.3 組出 Notification payload content：推播 payload 含 title/body/url，url 帶 schoolId 與日期查詢參數；驗證：檢查產生的 payload JSON 結構符合規格
 - [ ] 3.4 依 通知傳輸：直接用標準 VAPID Web Push，不整合 Firebase FCM 決策，用相容 Cloudflare Workers runtime 的 SubtleCrypto 實作完成 aes128gcm 加密與 VAPID JWT 簽章（技術驗證 spike）；驗證：對 Chrome、Firefox、Safari(iOS PWA) 三種瀏覽器各自建立測試訂閱，實際收到推播通知
-- [ ] 3.5 實作 Delivery failure tracking：Web Push 送達回 410 時呼叫 school-subscription 的 `failure_count` 遞增邏輯；驗證：mock 410 回應後檢查對應訂閱 `failure_count` 增加
+- [x] 3.5 實作 Delivery failure tracking：Web Push 送達回 410 時呼叫 school-subscription 的 `failure_count` 遞增邏輯；驗證：mock 410 回應後檢查對應訂閱 `failure_count` 增加
 
 ## 4. photo-proxy 能力
 

@@ -11,3 +11,6 @@ database_id = "00000000-0000-0000-0000-000000000000"
 
 [triggers]
 crons = ["0 0-6 * * *"]
+
+[vars]
+FRONTEND_URL = "https://example.github.io/lunch-photo-push-service/"

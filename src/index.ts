@@ -3,7 +3,10 @@ export interface Env {
   VAPID_PRIVATE_KEY: string;
   VAPID_PUBLIC_KEY: string;
   VAPID_SUBJECT: string;
+  FRONTEND_URL: string;
 }
+
+import { checkMenusAndNotify } from "./menu.ts";
 
 interface PushSubscriptionInput {
   endpoint: string;
@@ -99,4 +102,7 @@ export async function handleRequest(request: Request, env: Env): Promise<Respons
 
 export default {
   fetch: handleRequest,
+  async scheduled(_controller, env, ctx) {
+    ctx.waitUntil(checkMenusAndNotify(env, env.FRONTEND_URL));
+  },
 } satisfies ExportedHandler<Env>;
