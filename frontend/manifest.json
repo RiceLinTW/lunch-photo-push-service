@@ -1,0 +1,19 @@
+{
+  "name": "午餐好了沒？",
+  "short_name": "午餐通知",
+  "description": "學校午餐照片上傳通知",
+  "lang": "zh-Hant",
+  "start_url": "./",
+  "scope": "./",
+  "display": "standalone",
+  "background_color": "#fff8ef",
+  "theme_color": "#f26b38",
+  "icons": [
+    {
+      "src": "icons/icon.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "any maskable"
+    }
+  ]
+}

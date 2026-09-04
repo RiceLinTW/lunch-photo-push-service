@@ -25,9 +25,9 @@
 
 ## 5. PWA 前端
 
-- [ ] 5.1 依 學校清單/選校 UX（v1）決策，建立 GitHub Pages 靜態站台骨架（manifest.json、service worker、手動輸入 SchoolId 的選校畫面）；驗證：手機瀏覽器可將頁面加入主畫面，出現獨立 App 圖示
-- [ ] 5.2 實作訂閱/取消訂閱 UI，呼叫 Worker 的 `/api/subscribe`、`/api/unsubscribe`；驗證：瀏覽器 devtools 檢查訂閱後 D1 出現記錄、取消訂閱後記錄消失
-- [ ] 5.3 實作當天菜色檢視頁，依推播 url 帶入的 schoolId/日期顯示菜色與圖片，落實 No direct client access to source domain：圖片一律只呼叫 `/api/photo/`；驗證：檢查頁面 DOM 中所有 `img` 的 `src` 均以 `/api/photo/` 開頭
+- [x] 5.1 依 學校清單/選校 UX（v1）決策，建立 GitHub Pages 靜態站台骨架（manifest.json、service worker、手動輸入 SchoolId 的選校畫面）；驗證：手機瀏覽器可將頁面加入主畫面，出現獨立 App 圖示
+- [x] 5.2 實作訂閱/取消訂閱 UI，呼叫 Worker 的 `/api/subscribe`、`/api/unsubscribe`；驗證：瀏覽器 devtools 檢查訂閱後 D1 出現記錄、取消訂閱後記錄消失
+- [x] 5.3 實作當天菜色檢視頁，依推播 url 帶入的 schoolId/日期顯示菜色與圖片，落實 No direct client access to source domain：圖片一律只呼叫 `/api/photo/`；驗證：檢查頁面 DOM 中所有 `img` 的 `src` 均以 `/api/photo/` 開頭
 
 ## 6. 隱私與合規頁面
 

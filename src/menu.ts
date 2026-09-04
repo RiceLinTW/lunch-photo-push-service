@@ -7,7 +7,12 @@ const SOURCE_ORIGIN = "https://fatraceschool.k12ea.gov.tw";
 interface SchoolRow { school_id: string }
 interface SubscriptionRow extends PushTarget {}
 interface MenuItem { BatchDataId?: string | number | null }
-interface Dish { PicturePath?: string | null }
+export interface Dish {
+  DishId?: string | number | null;
+  DishName?: string | null;
+  DishType?: string | null;
+  PicturePath?: string | null;
+}
 
 export interface CronDependencies {
   fetch: typeof fetch;
@@ -37,22 +42,28 @@ export function notificationPayload(schoolId: string, date: string, frontendUrl:
   };
 }
 
-async function schoolHasPhoto(schoolId: string, date: string, fetcher: typeof fetch): Promise<boolean> {
+export async function fetchSchoolMenu(schoolId: string, date: string, fetcher: typeof fetch = fetch): Promise<Dish[]> {
   const menuUrl = new URL("/offered/meal", SOURCE_ORIGIN);
   menuUrl.search = new URLSearchParams({ SchoolId: schoolId, period: date, KitchenId: "all", MenuType: "1" }).toString();
   const menuResponse = await fetcher(menuUrl);
   if (!menuResponse.ok) throw new Error(`Menu API returned ${menuResponse.status}`);
   const menu = await menuResponse.json() as { data?: MenuItem[] };
   const batchIds = [...new Set((menu.data ?? []).map((item) => item.BatchDataId).filter((id): id is string | number => id !== null && id !== undefined && id !== ""))];
+  const allDishes: Dish[] = [];
   for (const batchId of batchIds) {
     const dishUrl = new URL("/dish", SOURCE_ORIGIN);
     dishUrl.searchParams.set("BatchDataId", String(batchId));
     const dishResponse = await fetcher(dishUrl);
     if (!dishResponse.ok) throw new Error(`Dish API returned ${dishResponse.status}`);
     const dishes = await dishResponse.json() as Dish[];
-    if (dishes.some((dish) => typeof dish.PicturePath === "string" && dish.PicturePath.trim() !== "")) return true;
+    allDishes.push(...dishes);
   }
-  return false;
+  return allDishes;
+}
+
+async function schoolHasPhoto(schoolId: string, date: string, fetcher: typeof fetch): Promise<boolean> {
+  const dishes = await fetchSchoolMenu(schoolId, date, fetcher);
+  return dishes.some((dish) => typeof dish.PicturePath === "string" && dish.PicturePath.trim() !== "");
 }
 
 export async function checkMenusAndNotify(

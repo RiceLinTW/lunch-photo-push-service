@@ -1,0 +1,41 @@
+:root {
+  color-scheme: light;
+  font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+  color: #2d251f;
+  background: #fff8ef;
+  --orange: #e95722;
+  --ink: #2d251f;
+  --line: #ead8c5;
+}
+
+* { box-sizing: border-box; }
+body { margin: 0; min-height: 100vh; background: radial-gradient(circle at top right, #ffe0b7, transparent 35rem), #fff8ef; }
+main { width: min(760px, calc(100% - 32px)); margin: 0 auto; padding: 64px 0 24px; }
+header { margin-bottom: 32px; }
+.eyebrow { color: var(--orange); font-size: .75rem; font-weight: 800; letter-spacing: .18em; }
+h1 { margin: 8px 0; font-size: clamp(2.5rem, 10vw, 5rem); line-height: .98; letter-spacing: -.06em; }
+h2 { margin: 0 0 20px; font-size: 1.25rem; }
+p { line-height: 1.6; }
+.card { margin-bottom: 20px; padding: clamp(20px, 5vw, 32px); border: 1px solid var(--line); border-radius: 24px; background: rgb(255 255 255 / 88%); box-shadow: 0 20px 50px rgb(87 51 26 / 8%); }
+label { display: block; margin-bottom: 8px; font-weight: 700; }
+.field-row { display: flex; gap: 10px; }
+input, button { min-height: 48px; border-radius: 12px; font: inherit; }
+input { min-width: 0; flex: 1; padding: 0 14px; border: 1px solid var(--line); background: #fff; }
+button { padding: 0 18px; border: 0; background: var(--ink); color: #fff; font-weight: 750; cursor: pointer; }
+button:disabled { cursor: wait; opacity: .55; }
+.hint { color: #6b5b4e; font-size: .9rem; }
+a { color: #a83b16; }
+.actions { display: flex; flex-wrap: wrap; gap: 10px; margin-top: 24px; }
+.primary { background: var(--orange); }
+.secondary { border: 1px solid var(--line); background: #fff; color: var(--ink); }
+#status { min-height: 1.6em; margin-bottom: 0; }
+.section-title { display: flex; align-items: baseline; justify-content: space-between; gap: 16px; }
+.menu-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 14px; }
+.dish { overflow: hidden; border: 1px solid var(--line); border-radius: 16px; background: #fff; }
+.dish img { display: block; width: 100%; aspect-ratio: 4 / 3; object-fit: cover; background: #f3ede7; }
+.dish div { padding: 14px; }
+.dish h3 { margin: 0; font-size: 1rem; }
+.dish small { color: #78685a; }
+.empty { grid-column: 1 / -1; color: #78685a; text-align: center; }
+footer { padding: 24px; text-align: center; }
+@media (max-width: 520px) { main { padding-top: 40px; } .field-row { flex-direction: column; } .field-row button { width: 100%; } }

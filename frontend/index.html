@@ -1,0 +1,51 @@
+<!doctype html>
+<html lang="zh-Hant">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#f26b38">
+  <meta name="description" content="學校午餐照片上傳時，立即收到通知。">
+  <link rel="manifest" href="manifest.json">
+  <link rel="icon" href="icons/icon.svg" type="image/svg+xml">
+  <link rel="apple-touch-icon" href="icons/icon.svg">
+  <link rel="stylesheet" href="styles.css">
+  <title>午餐好了沒？</title>
+</head>
+<body>
+  <main>
+    <header>
+      <span class="eyebrow">SCHOOL LUNCH</span>
+      <h1>午餐好了沒？</h1>
+      <p>輸入學校代碼，菜色照片一上傳就通知你。</p>
+    </header>
+
+    <section class="card" aria-labelledby="school-heading">
+      <h2 id="school-heading">選擇學校</h2>
+      <form id="school-form">
+        <label for="school-id">SchoolId 學校代碼</label>
+        <div class="field-row">
+          <input id="school-id" name="schoolId" inputmode="numeric" autocomplete="off" required placeholder="例如：64736349">
+          <button type="submit">查看菜色</button>
+        </div>
+      </form>
+      <p class="hint">不知道代碼？前往<a href="https://fatraceschool.k12ea.gov.tw/frontend/search.html" target="_blank" rel="noreferrer">校園食材登錄平臺</a>查詢學校。</p>
+      <div class="actions">
+        <button id="subscribe" class="primary" type="button">開啟照片通知</button>
+        <button id="unsubscribe" class="secondary" type="button">取消通知</button>
+      </div>
+      <p id="status" role="status" aria-live="polite"></p>
+    </section>
+
+    <section id="menu-section" class="card" aria-labelledby="menu-heading" hidden>
+      <div class="section-title">
+        <h2 id="menu-heading">今日菜色</h2>
+        <time id="menu-date"></time>
+      </div>
+      <div id="menu" class="menu-grid"></div>
+    </section>
+  </main>
+  <footer><a href="privacy.html">隱私權政策</a></footer>
+  <script src="config.js"></script>
+  <script src="app.js" type="module"></script>
+</body>
+</html>

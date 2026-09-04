@@ -6,7 +6,7 @@ export interface Env {
   FRONTEND_URL: string;
 }
 
-import { checkMenusAndNotify } from "./menu.ts";
+import { checkMenusAndNotify, fetchSchoolMenu } from "./menu.ts";
 import { proxyPhoto } from "./photo.ts";
 
 interface PushSubscriptionInput {
@@ -19,7 +19,12 @@ interface SubscribeInput {
   subscription: PushSubscriptionInput;
 }
 
-const JSON_HEADERS = { "content-type": "application/json; charset=utf-8" };
+const CORS_HEADERS = {
+  "access-control-allow-origin": "*",
+  "access-control-allow-headers": "content-type",
+  "access-control-allow-methods": "GET, POST, OPTIONS",
+};
+const JSON_HEADERS = { "content-type": "application/json; charset=utf-8", ...CORS_HEADERS };
 
 function json(value: unknown, status = 200): Response {
   return new Response(JSON.stringify(value), { status, headers: JSON_HEADERS });
@@ -94,12 +99,25 @@ export async function recordDeliveryResult(db: D1Database, endpoint: string, sta
 }
 
 export async function handleRequest(request: Request, env: Env): Promise<Response> {
-  const { pathname } = new URL(request.url);
+  const url = new URL(request.url);
+  const { pathname } = url;
+  if (request.method === "OPTIONS") return new Response(null, { status: 204, headers: CORS_HEADERS });
   if (request.method === "POST" && pathname === "/api/subscribe") return subscribe(request, env.DB);
   if (request.method === "POST" && pathname === "/api/unsubscribe") return unsubscribe(request, env.DB);
   if (request.method === "GET" && pathname.startsWith("/api/photo/")) {
     const dishId = decodeURIComponent(pathname.slice("/api/photo/".length));
     return proxyPhoto(request, dishId);
+  }
+  if (request.method === "GET" && pathname === "/api/menu") {
+    const schoolId = url.searchParams.get("schoolId")?.trim();
+    const date = url.searchParams.get("date");
+    if (!schoolId || !date || !/^\d{4}-\d{2}-\d{2}$/.test(date)) return json({ ok: false, error: "Invalid schoolId or date" }, 400);
+    try {
+      return json({ ok: true, schoolId, date, dishes: await fetchSchoolMenu(schoolId, date) });
+    } catch (error) {
+      console.error("Menu lookup failed", error);
+      return json({ ok: false, error: "Menu source request failed" }, 502);
+    }
   }
   if (request.method === "GET" && pathname === "/health") return json({ service: "lunch-photo-push-service", status: "ok" });
   return json({ ok: false, error: "Not found" }, 404);
