@@ -1,5 +1,6 @@
 import type { Env } from "./index.ts";
 import { recordDeliveryResult } from "./index.ts";
+import { SOURCE_REQUEST_HEADERS } from "./source-headers.ts";
 import { sendWebPush, type PushTarget } from "./web-push.ts";
 
 const SOURCE_ORIGIN = "https://fatraceschool.k12ea.gov.tw";
@@ -45,7 +46,7 @@ export function notificationPayload(schoolId: string, date: string, frontendUrl:
 export async function fetchSchoolMenu(schoolId: string, date: string, fetcher: typeof fetch = fetch): Promise<Dish[]> {
   const menuUrl = new URL("/offered/meal", SOURCE_ORIGIN);
   menuUrl.search = new URLSearchParams({ SchoolId: schoolId, period: date, KitchenId: "all", MenuType: "1" }).toString();
-  const menuResponse = await fetcher(menuUrl);
+  const menuResponse = await fetcher(menuUrl, { headers: SOURCE_REQUEST_HEADERS });
   if (!menuResponse.ok) throw new Error(`Menu API returned ${menuResponse.status}`);
   const menu = await menuResponse.json() as { data?: MenuItem[] };
   const batchIds = [...new Set((menu.data ?? []).map((item) => item.BatchDataId).filter((id): id is string | number => id !== null && id !== undefined && id !== ""))];
@@ -53,10 +54,10 @@ export async function fetchSchoolMenu(schoolId: string, date: string, fetcher: t
   for (const batchId of batchIds) {
     const dishUrl = new URL("/dish", SOURCE_ORIGIN);
     dishUrl.searchParams.set("BatchDataId", String(batchId));
-    const dishResponse = await fetcher(dishUrl);
+    const dishResponse = await fetcher(dishUrl, { headers: SOURCE_REQUEST_HEADERS });
     if (!dishResponse.ok) throw new Error(`Dish API returned ${dishResponse.status}`);
-    const dishes = await dishResponse.json() as Dish[];
-    allDishes.push(...dishes);
+    const dishResult = await dishResponse.json() as { data?: Dish[] };
+    allDishes.push(...(dishResult.data ?? []));
   }
   return allDishes;
 }

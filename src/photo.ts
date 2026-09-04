@@ -1,3 +1,5 @@
+import { SOURCE_REQUEST_HEADERS } from "./source-headers.ts";
+
 const PHOTO_ORIGIN = "https://fatraceschool.k12ea.gov.tw";
 const THIRTY_DAYS = 30 * 24 * 60 * 60;
 
@@ -20,7 +22,7 @@ export async function proxyPhoto(
   if (cached) return withCacheStatus(cached, "HIT");
 
   const sourceUrl = new URL(`/dish/pic/${encodeURIComponent(dishId)}`, PHOTO_ORIGIN);
-  const source = await fetcher(sourceUrl, { headers: { accept: "image/*" } });
+  const source = await fetcher(sourceUrl, { headers: { accept: "image/*", ...SOURCE_REQUEST_HEADERS } });
   if (!source.ok) {
     return Response.json(
       { ok: false, error: "Photo source request failed" },

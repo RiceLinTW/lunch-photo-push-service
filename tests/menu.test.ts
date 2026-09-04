@@ -66,7 +66,7 @@ test("a photo claims the daily log and pushes once", async () => {
   const fetcher = async (input: URL | RequestInfo) => {
     sourceCalls++;
     const url = new URL(String(input));
-    return Response.json(url.pathname === "/offered/meal" ? { data: [{ BatchDataId: "batch" }] } : [{ PicturePath: "/photo.jpg" }]);
+    return Response.json(url.pathname === "/offered/meal" ? { data: [{ BatchDataId: "batch" }] } : { data: [{ PicturePath: "/photo.jpg" }] });
   };
   const payloads: unknown[] = [];
   const push = async (_target: unknown, payload: unknown) => { payloads.push(payload); return new Response(null, { status: 201 }); };
@@ -80,7 +80,7 @@ test("a photo claims the daily log and pushes once", async () => {
 
 test("a menu without photos writes no log and sends no push", async () => {
   const state: State = { schools: ["123"], subscriptions: [{ ...subscription }], logs: new Set() };
-  const fetcher = async (input: URL | RequestInfo) => Response.json(new URL(String(input)).pathname === "/offered/meal" ? { data: [{ BatchDataId: "batch" }] } : [{ PicturePath: "" }]);
+  const fetcher = async (input: URL | RequestInfo) => Response.json(new URL(String(input)).pathname === "/offered/meal" ? { data: [{ BatchDataId: "batch" }] } : { data: [{ PicturePath: "" }] });
   let pushes = 0;
   await checkMenusAndNotify(environment(state), "https://frontend.test/", { now, fetch: fetcher as typeof fetch, push: (async () => { pushes++; return new Response(null, { status: 201 }); }) as never });
   assert.equal(state.logs.size, 0);
@@ -89,7 +89,7 @@ test("a menu without photos writes no log and sends no push", async () => {
 
 test("a 410 push response increments failure_count", async () => {
   const state: State = { schools: ["123"], subscriptions: [{ ...subscription }], logs: new Set() };
-  const fetcher = async (input: URL | RequestInfo) => Response.json(new URL(String(input)).pathname === "/offered/meal" ? { data: [{ BatchDataId: "batch" }] } : [{ PicturePath: "photo" }]);
+  const fetcher = async (input: URL | RequestInfo) => Response.json(new URL(String(input)).pathname === "/offered/meal" ? { data: [{ BatchDataId: "batch" }] } : { data: [{ PicturePath: "photo" }] });
   await checkMenusAndNotify(environment(state), "https://frontend.test/", { now, fetch: fetcher as typeof fetch, push: (async () => new Response(null, { status: 410 })) as never });
   assert.equal(state.subscriptions[0].failure_count, 1);
 });
