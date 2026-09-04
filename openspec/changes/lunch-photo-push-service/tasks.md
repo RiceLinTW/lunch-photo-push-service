@@ -1,7 +1,7 @@
 ## 1. Cloudflare Worker 專案骨架
 
-- [ ] 1.1 建立 Cloudflare Worker 專案（wrangler.toml、D1 binding），依 D1 Schema 決策建立 `subscriptions` 與 `notification_log` 兩張表；驗證：`wrangler d1 execute` 成功建表，欄位與 design.md 的 D1 Schema 一致
-- [ ] 1.2 依 VAPID Key 管理 決策產生 VAPID key pair，private key 存為 Worker secret、public key 提供給前端使用；驗證：`wrangler secret list` 顯示 `VAPID_PRIVATE_KEY` 已設定
+- [x] 1.1 建立 Cloudflare Worker 專案（wrangler.toml、D1 binding），依 D1 Schema 決策建立 `subscriptions` 與 `notification_log` 兩張表；驗證：`wrangler d1 execute` 成功建表，欄位與 design.md 的 D1 Schema 一致
+- [x] 1.2 依 VAPID Key 管理 決策產生 VAPID key pair，private key 存為 Worker secret、public key 提供給前端使用；驗證：`wrangler secret list` 顯示 `VAPID_PRIVATE_KEY` 已設定
 
 ## 2. school-subscription 能力
 

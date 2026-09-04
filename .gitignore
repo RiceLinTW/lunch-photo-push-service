@@ -1,2 +1,7 @@
 # Spectra app data
 .spectra/
+.wrangler/
+node_modules/
+.dev.vars
+.env
+npm-debug.log*
