@@ -7,6 +7,7 @@ export interface Env {
 }
 
 import { checkMenusAndNotify } from "./menu.ts";
+import { proxyPhoto } from "./photo.ts";
 
 interface PushSubscriptionInput {
   endpoint: string;
@@ -96,6 +97,10 @@ export async function handleRequest(request: Request, env: Env): Promise<Respons
   const { pathname } = new URL(request.url);
   if (request.method === "POST" && pathname === "/api/subscribe") return subscribe(request, env.DB);
   if (request.method === "POST" && pathname === "/api/unsubscribe") return unsubscribe(request, env.DB);
+  if (request.method === "GET" && pathname.startsWith("/api/photo/")) {
+    const dishId = decodeURIComponent(pathname.slice("/api/photo/".length));
+    return proxyPhoto(request, dishId);
+  }
   if (request.method === "GET" && pathname === "/health") return json({ service: "lunch-photo-push-service", status: "ok" });
   return json({ ok: false, error: "Not found" }, 404);
 }

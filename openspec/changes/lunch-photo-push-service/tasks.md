@@ -20,8 +20,8 @@
 
 ## 4. photo-proxy 能力
 
-- [ ] 4.1 實作 `GET /api/photo/:dishId`，落實 Server-side photo fetch：server-to-server fetch 來源圖片並回傳正確 Content-Type；驗證：curl 測試回應的 Content-Type 與圖片格式一致
-- [ ] 4.2 依 相片代理與快取 決策，實作 Edge caching of fetched photos：用 Cloudflare Cache API 對同一 dishId 設定 30 天 Cache-Control；驗證：連續兩次請求同一 dishId，第二次回應的 `cf-cache-status` header 顯示 HIT
+- [x] 4.1 實作 `GET /api/photo/:dishId`，落實 Server-side photo fetch：server-to-server fetch 來源圖片並回傳正確 Content-Type；驗證：curl 測試回應的 Content-Type 與圖片格式一致
+- [x] 4.2 依 相片代理與快取 決策，實作 Edge caching of fetched photos：用 Cloudflare Cache API 對同一 dishId 設定 30 天 Cache-Control；驗證：連續兩次請求同一 dishId，第二次回應的 `cf-cache-status` header 顯示 HIT
 
 ## 5. PWA 前端
 
