@@ -5,3 +5,5 @@ node_modules/
 .dev.vars
 .env
 npm-debug.log*
+openspec/.vector-search.db*
+.claude/
