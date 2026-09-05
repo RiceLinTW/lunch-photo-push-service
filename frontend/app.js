@@ -110,6 +110,13 @@ subscribeButton.addEventListener("click", async () => {
   try {
     const schoolId = selectedSchool();
     subscribeButton.disabled = false;
+    if (!("Notification" in window)) {
+      throw new Error(
+        navigator.standalone === false
+          ? "請先將本頁加入主畫面（分享 → 加入主畫面），再從主畫面開啟本 App 才能開啟通知。"
+          : "此瀏覽器不支援通知功能。",
+      );
+    }
     const permission = await Notification.requestPermission();
     if (permission !== "granted") throw new Error("需要允許通知才能訂閱。");
     const registration = await workerRegistration();
