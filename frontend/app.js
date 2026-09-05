@@ -175,8 +175,7 @@ async function loadMenu(schoolId, date) {
   if (!response.ok) throw new Error("目前無法取得菜單，請稍後再試。");
   const result = await response.json();
   renderDishes(result.dishes);
-  menuDate.dateTime = date;
-  menuDate.textContent = date;
+  menuDate.value = date;
   menuSection.hidden = false;
   status.textContent = "";
 }
@@ -186,14 +185,22 @@ form.addEventListener("submit", async (event) => {
   try {
     const schoolId = selectedSchool();
     localStorage.setItem("schoolId", schoolId);
-    await loadMenu(schoolId, todayInTaipei());
+    await loadMenu(schoolId, menuDate.value || todayInTaipei());
   } catch (error) { status.textContent = error instanceof Error ? error.message : "查詢失敗。"; }
+});
+
+menuDate.addEventListener("change", () => {
+  const schoolId = schoolInput.value.trim();
+  if (!schoolId) return;
+  loadMenu(schoolId, menuDate.value || todayInTaipei()).catch((error) => { status.textContent = error.message; });
 });
 
 const params = new URLSearchParams(location.search);
 const initialSchool = params.get("schoolId") || localStorage.getItem("schoolId") || "";
 const initialDate = params.get("date") || todayInTaipei();
 schoolInput.value = initialSchool;
+menuDate.max = todayInTaipei();
+menuDate.value = initialDate;
 manualReady();
 schoolInput.addEventListener("input", manualReady);
 if (!initialSchool) manualFallback.hidden = false;
