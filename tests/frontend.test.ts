@@ -20,16 +20,14 @@ test("frontend implements subscribe, unsubscribe and deep-linked menu loading", 
   assert.match(source, /params\.get\("date"\)/);
 });
 
-test("frontend searches the directory, resolves candidates, and keeps manual fallback", async () => {
+test("frontend searches the directory and resolves candidates before enabling subscribe", async () => {
   const source = await readFile("frontend/app.js", "utf8");
   const html = await readFile("frontend/index.html", "utf8");
   assert.match(source, /\/api\/schools\/search/);
   assert.match(source, /\/api\/schools\/resolve/);
-  assert.match(source, /manualFallback\.hidden = false/);
   assert.match(source, /addEventListener\("input"/);
   assert.match(html, /id="school-query"/);
   assert.match(html, /id="school-results"/);
-  assert.match(html, /id="manual-fallback"/);
 });
 
 test("dish images only use the Worker photo proxy and never the source domain", async () => {

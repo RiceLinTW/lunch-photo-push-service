@@ -1,10 +1,7 @@
 const config = globalThis.APP_CONFIG;
-const form = document.querySelector("#school-form");
 const queryInput = document.querySelector("#school-query");
 const resultsElement = document.querySelector("#school-results");
 const directoryStatus = document.querySelector("#directory-status");
-const manualFallback = document.querySelector("#manual-fallback");
-const schoolInput = document.querySelector("#school-id");
 const subscribeButton = document.querySelector("#subscribe");
 const unsubscribeButton = document.querySelector("#unsubscribe");
 const status = document.querySelector("#status");
@@ -13,6 +10,8 @@ const menuElement = document.querySelector("#menu");
 const menuDate = document.querySelector("#menu-date");
 const installButton = document.querySelector("#install-app");
 const installHint = document.querySelector("#install-hint");
+
+let confirmedSchoolId = "";
 
 function todayInTaipei() {
   return new Intl.DateTimeFormat("en-CA", { timeZone: "Asia/Taipei", year: "numeric", month: "2-digit", day: "2-digit" }).format(new Date());
@@ -40,12 +39,9 @@ async function post(path, body) {
 }
 
 function selectedSchool() {
-  const schoolId = schoolInput.value.trim();
-  if (!schoolId) throw new Error("請先輸入 SchoolId。");
-  return schoolId;
+  if (!confirmedSchoolId) throw new Error("請先搜尋並選擇你的學校。");
+  return confirmedSchoolId;
 }
-
-function manualReady() { subscribeButton.disabled = !schoolInput.value.trim(); }
 
 async function resolveCandidate(candidate) {
   directoryStatus.textContent = "正在確認學校代碼…";
@@ -54,10 +50,9 @@ async function resolveCandidate(candidate) {
     body: JSON.stringify({ school_code: candidate.school_code }),
   });
   const result = await response.json();
-  if (!response.ok || !result.ok) throw new Error("無法自動確認代碼，請使用下方手動輸入。 ");
-  schoolInput.value = result.school_id;
+  if (!response.ok || !result.ok) throw new Error("無法自動確認這間學校的代碼，請稍後再試或改搜尋其他關鍵字。");
+  confirmedSchoolId = result.school_id;
   subscribeButton.disabled = false;
-  manualFallback.hidden = true;
   localStorage.setItem("schoolId", result.school_id);
   directoryStatus.textContent = `已確認：${candidate.county} ${candidate.school_name}`;
   await loadMenu(result.school_id, menuDate.value || todayInTaipei()).catch((error) => { status.textContent = error.message; });
@@ -80,11 +75,9 @@ async function performSearch(query) {
     if (token !== searchToken) return;
     if (!result.schools?.length) {
       directoryStatus.textContent = "找不到符合的學校。";
-      manualFallback.hidden = false;
       return;
     }
     directoryStatus.textContent = "請選擇學校以確認代碼：";
-    manualFallback.hidden = true;
     for (const school of result.schools) {
       const button = document.createElement("button");
       button.type = "button"; button.className = "school-result";
@@ -92,14 +85,13 @@ async function performSearch(query) {
       button.addEventListener("click", async () => {
         button.disabled = true;
         try { await resolveCandidate(school); }
-        catch (error) { directoryStatus.textContent = error instanceof Error ? error.message : "無法確認代碼。"; manualFallback.hidden = false; button.disabled = false; }
+        catch (error) { directoryStatus.textContent = error instanceof Error ? error.message : "無法確認代碼。"; button.disabled = false; }
       });
       resultsElement.append(button);
     }
   } catch (error) {
     if (token !== searchToken) return;
     directoryStatus.textContent = error instanceof Error ? error.message : "搜尋失敗。";
-    manualFallback.hidden = false;
   }
 }
 
@@ -221,29 +213,17 @@ async function loadMenu(schoolId, date) {
   status.textContent = "";
 }
 
-form.addEventListener("submit", async (event) => {
-  event.preventDefault();
-  try {
-    const schoolId = selectedSchool();
-    localStorage.setItem("schoolId", schoolId);
-    await loadMenu(schoolId, menuDate.value || todayInTaipei());
-  } catch (error) { status.textContent = error instanceof Error ? error.message : "查詢失敗。"; }
-});
-
 menuDate.addEventListener("change", () => {
-  const schoolId = schoolInput.value.trim();
-  if (!schoolId) return;
-  loadMenu(schoolId, menuDate.value || todayInTaipei()).catch((error) => { status.textContent = error.message; });
+  if (!confirmedSchoolId) return;
+  loadMenu(confirmedSchoolId, menuDate.value || todayInTaipei()).catch((error) => { status.textContent = error.message; });
 });
 
 const params = new URLSearchParams(location.search);
 const initialSchool = params.get("schoolId") || localStorage.getItem("schoolId") || "";
 const initialDate = params.get("date") || todayInTaipei();
-schoolInput.value = initialSchool;
+confirmedSchoolId = initialSchool;
 menuDate.max = todayInTaipei();
 menuDate.value = initialDate;
-manualReady();
-schoolInput.addEventListener("input", manualReady);
-if (!initialSchool) manualFallback.hidden = false;
+subscribeButton.disabled = !initialSchool;
 if (initialSchool) loadMenu(initialSchool, initialDate).catch((error) => { status.textContent = error.message; });
 workerRegistration().catch(() => {});
