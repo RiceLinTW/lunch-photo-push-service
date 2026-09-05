@@ -11,6 +11,8 @@ const status = document.querySelector("#status");
 const menuSection = document.querySelector("#menu-section");
 const menuElement = document.querySelector("#menu");
 const menuDate = document.querySelector("#menu-date");
+const installButton = document.querySelector("#install-app");
+const installHint = document.querySelector("#install-hint");
 
 function todayInTaipei() {
   return new Intl.DateTimeFormat("en-CA", { timeZone: "Asia/Taipei", year: "numeric", month: "2-digit", day: "2-digit" }).format(new Date());
@@ -56,7 +58,9 @@ async function resolveCandidate(candidate) {
   schoolInput.value = result.school_id;
   subscribeButton.disabled = false;
   manualFallback.hidden = true;
+  localStorage.setItem("schoolId", result.school_id);
   directoryStatus.textContent = `已確認：${candidate.county} ${candidate.school_name}`;
+  await loadMenu(result.school_id, menuDate.value || todayInTaipei()).catch((error) => { status.textContent = error.message; });
 }
 
 let searchToken = 0;
@@ -105,11 +109,41 @@ queryInput.addEventListener("input", () => {
   debounceTimer = setTimeout(() => performSearch(value), 250);
 });
 
+let deferredInstallPrompt = null;
+
+globalThis.addEventListener("beforeinstallprompt", (event) => {
+  event.preventDefault();
+  deferredInstallPrompt = event;
+  installButton.hidden = false;
+});
+
+installButton.addEventListener("click", async () => {
+  if (!deferredInstallPrompt) return;
+  installButton.disabled = true;
+  deferredInstallPrompt.prompt();
+  await deferredInstallPrompt.userChoice;
+  deferredInstallPrompt = null;
+  installButton.hidden = true;
+});
+
+const isIOS = /iP(hone|od|ad)/.test(navigator.userAgent) || (navigator.userAgent.includes("Mac") && "ontouchend" in document);
+const isStandalone = navigator.standalone === true || matchMedia("(display-mode: standalone)").matches;
+if (isIOS && !isStandalone) installHint.hidden = false;
+
 subscribeButton.addEventListener("click", async () => {
   subscribeButton.disabled = true;
   try {
     const schoolId = selectedSchool();
     subscribeButton.disabled = false;
+    if (deferredInstallPrompt) {
+      // On Android, offer the home-screen install as part of the same tap that turns on
+      // notifications — installing isn't required for push to work here (unlike iOS), so a
+      // decline just continues straight to the permission request below.
+      deferredInstallPrompt.prompt();
+      await deferredInstallPrompt.userChoice;
+      deferredInstallPrompt = null;
+      installButton.hidden = true;
+    }
     if (!("Notification" in window)) {
       throw new Error(
         navigator.standalone === false
