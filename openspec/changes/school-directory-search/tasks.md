@@ -1,11 +1,11 @@
 ## 1. 學校名錄資料（school-directory-search 能力）
 
-- [ ] 1.1 依 D1 Schema 決策，建立 `school_directory` 與 `verified_school_ids` 兩張表（D1 migration）；驗證：`wrangler d1 migrations apply --local` 成功建表，欄位與 design.md 一致
-- [ ] 1.2 依 資料來源與匯入方式 決策，寫一次性匯入 script 從教育部三份名錄（國小/國中/高中）下載並寫入 `school_directory`，落實 Import the official school directory：以 `school_code` 為鍵、可重複執行不產生重複列；驗證：跑兩次匯入，`school_directory` 總筆數不變
+- [x] 1.1 依 D1 Schema 決策，建立 `school_directory` 與 `verified_school_ids` 兩張表（D1 migration）；驗證：`wrangler d1 migrations apply --local` 成功建表，欄位與 design.md 一致
+- [x] 1.2 依 資料來源與匯入方式 決策，寫一次性匯入 script 從教育部三份名錄（國小/國中/高中）下載並寫入 `school_directory`，落實 Import the official school directory：以 `school_code` 為鍵、可重複執行不產生重複列；驗證：跑兩次匯入，`school_directory` 總筆數不變
 
 ## 2. 站內搜尋
 
-- [ ] 2.1 依 搜尋方式：縣市 + 名稱關鍵字（兩層，非三層） 決策，實作 `GET /api/schools/search?county=&q=`，落實 Search the directory by county and name：對 `school_name` 做 `LIKE` 模糊比對；驗證：搜尋「清溝」＋縣市「宜蘭縣」能找到「縣立清溝國小」；搜尋部分關鍵字（非全名）也能命中
+- [x] 2.1 依 搜尋方式：縣市 + 名稱關鍵字（兩層，非三層） 決策，實作 `GET /api/schools/search?county=&q=`，落實 Search the directory by county and name：對 `school_name` 做 `LIKE` 模糊比對；驗證：搜尋「清溝」＋縣市「宜蘭縣」能找到「縣立清溝國小」；搜尋部分關鍵字（非全名）也能命中
 
 ## 3. 代碼驗證與快取
 
