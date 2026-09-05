@@ -5,9 +5,7 @@ compatibility_date = "2026-09-04"
 [[d1_databases]]
 binding = "DB"
 database_name = "lunch-photo-push-service"
-# Replace this placeholder with the ID returned by:
-#   wrangler d1 create lunch-photo-push-service
-database_id = "00000000-0000-0000-0000-000000000000"
+database_id = "6922ed13-ca13-4033-b581-fcff58f2fa0b"
 
 [triggers]
 crons = ["0 0-6 * * *"]

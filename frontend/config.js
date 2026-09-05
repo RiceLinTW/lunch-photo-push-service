@@ -1,5 +1,5 @@
 // This VAPID public key is intentionally public and is used by PushManager.subscribe().
 globalThis.APP_CONFIG = {
-  apiBaseUrl: "http://localhost:8787",
-  vapidPublicKey: "BLIpjBuRuWBEgvjGf6rVNyTIL4cUc9_MRyZdqd-_TwsrQdegcnXxTZzhXK69F_Uf5etxT9JGHWNW29iPNFhACH4",
+  apiBaseUrl: "https://lunch-photo-push-service.fzgxt5k8ff.workers.dev",
+  vapidPublicKey: "BC2UEC_FgBb_zqvhWtmVcJCoImLTXQQxtf16hfI7aZDZHb7qYuyQXkGT6_yvY1fE0vLxaU30PIPrNB5NNGMYqWI",
 };
