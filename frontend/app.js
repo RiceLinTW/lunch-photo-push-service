@@ -1,7 +1,5 @@
 const config = globalThis.APP_CONFIG;
 const form = document.querySelector("#school-form");
-const searchForm = document.querySelector("#school-search-form");
-const countyInput = document.querySelector("#school-county");
 const queryInput = document.querySelector("#school-query");
 const resultsElement = document.querySelector("#school-results");
 const directoryStatus = document.querySelector("#directory-status");
@@ -61,21 +59,28 @@ async function resolveCandidate(candidate) {
   directoryStatus.textContent = `已確認：${candidate.county} ${candidate.school_name}`;
 }
 
-searchForm.addEventListener("submit", async (event) => {
-  event.preventDefault();
-  resultsElement.replaceChildren(); manualFallback.hidden = true;
+let searchToken = 0;
+let debounceTimer = null;
+
+async function performSearch(query) {
+  const token = ++searchToken;
+  resultsElement.replaceChildren();
+  if (!query) { directoryStatus.textContent = ""; return; }
   directoryStatus.textContent = "正在搜尋學校…";
   try {
-    const params = new URLSearchParams({ county: countyInput.value, q: queryInput.value.trim() });
+    const params = new URLSearchParams({ q: query });
     const response = await fetch(`${config.apiBaseUrl}/api/schools/search?${params}`);
+    if (token !== searchToken) return; // a newer keystroke already superseded this search
     if (!response.ok) throw new Error("學校搜尋暫時無法使用。 ");
     const result = await response.json();
+    if (token !== searchToken) return;
     if (!result.schools?.length) {
       directoryStatus.textContent = "找不到符合的學校。";
       manualFallback.hidden = false;
       return;
     }
     directoryStatus.textContent = "請選擇學校以確認代碼：";
+    manualFallback.hidden = true;
     for (const school of result.schools) {
       const button = document.createElement("button");
       button.type = "button"; button.className = "school-result";
@@ -88,9 +93,16 @@ searchForm.addEventListener("submit", async (event) => {
       resultsElement.append(button);
     }
   } catch (error) {
+    if (token !== searchToken) return;
     directoryStatus.textContent = error instanceof Error ? error.message : "搜尋失敗。";
     manualFallback.hidden = false;
   }
+}
+
+queryInput.addEventListener("input", () => {
+  clearTimeout(debounceTimer);
+  const value = queryInput.value.trim();
+  debounceTimer = setTimeout(() => performSearch(value), 250);
 });
 
 subscribeButton.addEventListener("click", async () => {

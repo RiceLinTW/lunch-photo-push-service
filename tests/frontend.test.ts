@@ -26,7 +26,7 @@ test("frontend searches the directory, resolves candidates, and keeps manual fal
   assert.match(source, /\/api\/schools\/search/);
   assert.match(source, /\/api\/schools\/resolve/);
   assert.match(source, /manualFallback\.hidden = false/);
-  assert.match(html, /id="school-county"/);
+  assert.match(source, /addEventListener\("input"/);
   assert.match(html, /id="school-query"/);
   assert.match(html, /id="school-results"/);
   assert.match(html, /id="manual-fallback"/);
