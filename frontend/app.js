@@ -1,5 +1,11 @@
 const config = globalThis.APP_CONFIG;
 const form = document.querySelector("#school-form");
+const searchForm = document.querySelector("#school-search-form");
+const countyInput = document.querySelector("#school-county");
+const queryInput = document.querySelector("#school-query");
+const resultsElement = document.querySelector("#school-results");
+const directoryStatus = document.querySelector("#directory-status");
+const manualFallback = document.querySelector("#manual-fallback");
 const schoolInput = document.querySelector("#school-id");
 const subscribeButton = document.querySelector("#subscribe");
 const unsubscribeButton = document.querySelector("#unsubscribe");
@@ -39,10 +45,59 @@ function selectedSchool() {
   return schoolId;
 }
 
+function manualReady() { subscribeButton.disabled = !schoolInput.value.trim(); }
+
+async function resolveCandidate(candidate) {
+  directoryStatus.textContent = "正在確認學校代碼…";
+  const response = await fetch(`${config.apiBaseUrl}/api/schools/resolve`, {
+    method: "POST", headers: { "content-type": "application/json" },
+    body: JSON.stringify({ school_code: candidate.school_code }),
+  });
+  const result = await response.json();
+  if (!response.ok || !result.ok) throw new Error("無法自動確認代碼，請使用下方手動輸入。 ");
+  schoolInput.value = result.school_id;
+  subscribeButton.disabled = false;
+  manualFallback.hidden = true;
+  directoryStatus.textContent = `已確認：${candidate.county} ${candidate.school_name}`;
+}
+
+searchForm.addEventListener("submit", async (event) => {
+  event.preventDefault();
+  resultsElement.replaceChildren(); manualFallback.hidden = true;
+  directoryStatus.textContent = "正在搜尋學校…";
+  try {
+    const params = new URLSearchParams({ county: countyInput.value, q: queryInput.value.trim() });
+    const response = await fetch(`${config.apiBaseUrl}/api/schools/search?${params}`);
+    if (!response.ok) throw new Error("學校搜尋暫時無法使用。 ");
+    const result = await response.json();
+    if (!result.schools?.length) {
+      directoryStatus.textContent = "找不到符合的學校。";
+      manualFallback.hidden = false;
+      return;
+    }
+    directoryStatus.textContent = "請選擇學校以確認代碼：";
+    for (const school of result.schools) {
+      const button = document.createElement("button");
+      button.type = "button"; button.className = "school-result";
+      button.textContent = `${school.county} ${school.school_name}`;
+      button.addEventListener("click", async () => {
+        button.disabled = true;
+        try { await resolveCandidate(school); }
+        catch (error) { directoryStatus.textContent = error instanceof Error ? error.message : "無法確認代碼。"; manualFallback.hidden = false; button.disabled = false; }
+      });
+      resultsElement.append(button);
+    }
+  } catch (error) {
+    directoryStatus.textContent = error instanceof Error ? error.message : "搜尋失敗。";
+    manualFallback.hidden = false;
+  }
+});
+
 subscribeButton.addEventListener("click", async () => {
   subscribeButton.disabled = true;
   try {
     const schoolId = selectedSchool();
+    subscribeButton.disabled = false;
     const permission = await Notification.requestPermission();
     if (permission !== "granted") throw new Error("需要允許通知才能訂閱。");
     const registration = await workerRegistration();
@@ -127,5 +182,8 @@ const params = new URLSearchParams(location.search);
 const initialSchool = params.get("schoolId") || localStorage.getItem("schoolId") || "";
 const initialDate = params.get("date") || todayInTaipei();
 schoolInput.value = initialSchool;
+manualReady();
+schoolInput.addEventListener("input", manualReady);
+if (!initialSchool) manualFallback.hidden = false;
 if (initialSchool) loadMenu(initialSchool, initialDate).catch((error) => { status.textContent = error.message; });
 workerRegistration().catch(() => {});

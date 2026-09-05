@@ -21,6 +21,7 @@ label { display: block; margin-bottom: 8px; font-weight: 700; }
 .field-row { display: flex; gap: 10px; }
 input, button { min-height: 48px; border-radius: 12px; font: inherit; }
 input { min-width: 0; flex: 1; padding: 0 14px; border: 1px solid var(--line); background: #fff; }
+select { width: 100%; min-height: 48px; margin-bottom: 16px; padding: 0 14px; border: 1px solid var(--line); border-radius: 12px; background: #fff; font: inherit; }
 button { padding: 0 18px; border: 0; background: var(--ink); color: #fff; font-weight: 750; cursor: pointer; }
 button:disabled { cursor: wait; opacity: .55; }
 .hint { color: #6b5b4e; font-size: .9rem; }
@@ -37,5 +38,7 @@ a { color: #a83b16; }
 .dish h3 { margin: 0; font-size: 1rem; }
 .dish small { color: #78685a; }
 .empty { grid-column: 1 / -1; color: #78685a; text-align: center; }
+.school-results { display: grid; gap: 8px; margin-top: 16px; }
+.school-result { width: 100%; padding: 12px 16px; text-align: left; background: #fff; color: var(--ink); border: 1px solid var(--line); }
 footer { padding: 24px; text-align: center; }
 @media (max-width: 520px) { main { padding-top: 40px; } .field-row { flex-direction: column; } .field-row button { width: 100%; } }

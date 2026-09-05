@@ -16,11 +16,29 @@
     <header>
       <span class="eyebrow">SCHOOL LUNCH</span>
       <h1>午餐好了沒？</h1>
-      <p>輸入學校代碼，菜色照片一上傳就通知你。</p>
+      <p>搜尋你的學校，菜色照片一上傳就通知你。</p>
     </header>
 
     <section class="card" aria-labelledby="school-heading">
       <h2 id="school-heading">選擇學校</h2>
+      <form id="school-search-form">
+        <label for="school-county">縣市</label>
+        <select id="school-county" name="county">
+          <option value="">所有縣市</option>
+          <option>基隆市</option><option>臺北市</option><option>新北市</option><option>桃園市</option>
+          <option>新竹市</option><option>新竹縣</option><option>苗栗縣</option><option>臺中市</option>
+          <option>彰化縣</option><option>南投縣</option><option>雲林縣</option><option>嘉義市</option>
+          <option>嘉義縣</option><option>臺南市</option><option>高雄市</option><option>屏東縣</option>
+          <option>宜蘭縣</option><option>花蓮縣</option><option>臺東縣</option><option>澎湖縣</option>
+          <option>金門縣</option><option>連江縣</option>
+        </select>
+        <label for="school-query">學校名稱</label>
+        <div class="field-row"><input id="school-query" autocomplete="off" placeholder="例如：清溝"><button type="submit">搜尋學校</button></div>
+      </form>
+      <div id="school-results" class="school-results" aria-live="polite"></div>
+      <p id="directory-status" class="hint"></p>
+      <div id="manual-fallback" hidden>
+        <p class="hint">找不到或無法確認時，請前往<a href="https://fatraceschool.k12ea.gov.tw/frontend/search.html" target="_blank" rel="noreferrer">校園食材登錄平臺</a>查詢正確代碼，再手動輸入。</p>
       <form id="school-form">
         <label for="school-id">SchoolId 學校代碼</label>
         <div class="field-row">
@@ -28,9 +46,9 @@
           <button type="submit">查看菜色</button>
         </div>
       </form>
-      <p class="hint">不知道代碼？前往<a href="https://fatraceschool.k12ea.gov.tw/frontend/search.html" target="_blank" rel="noreferrer">校園食材登錄平臺</a>查詢學校。</p>
+      </div>
       <div class="actions">
-        <button id="subscribe" class="primary" type="button">開啟照片通知</button>
+        <button id="subscribe" class="primary" type="button" disabled>開啟照片通知</button>
         <button id="unsubscribe" class="secondary" type="button">取消通知</button>
       </div>
       <p id="status" role="status" aria-live="polite"></p>
