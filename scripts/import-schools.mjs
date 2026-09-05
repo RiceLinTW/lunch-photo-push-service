@@ -5,8 +5,6 @@ import { join } from "node:path";
 
 const SOURCES = [
   { stage: "國小", url: "https://stats.moe.gov.tw/files/school/114/e1_new.json" },
-  { stage: "國中", url: "https://stats.moe.gov.tw/files/opendata/j1_new.json" },
-  { stage: "高中", url: "https://stats.moe.gov.tw/files/school/114/high.json" },
 ];
 
 function fail(message) {
