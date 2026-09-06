@@ -10,8 +10,31 @@ const menuElement = document.querySelector("#menu");
 const menuDate = document.querySelector("#menu-date");
 const installButton = document.querySelector("#install-app");
 const installHint = document.querySelector("#install-hint");
+const selectedSchoolLabel = document.querySelector("#selected-school");
 
 let confirmedSchoolId = "";
+
+function readStoredSchool() {
+  try {
+    const raw = localStorage.getItem("school");
+    if (raw) return JSON.parse(raw);
+  } catch { /* ignore malformed storage */ }
+  const legacyId = localStorage.getItem("schoolId");
+  return legacyId ? { schoolId: legacyId, label: "" } : null;
+}
+
+function showSelectedSchool(schoolId, label) {
+  if (!schoolId) { selectedSchoolLabel.hidden = true; return; }
+  selectedSchoolLabel.textContent = label ? `目前已選擇：${label}` : `目前已選擇學校（代碼 ${schoolId}）`;
+  selectedSchoolLabel.hidden = false;
+}
+
+function rememberSchool(schoolId, label) {
+  const existing = readStoredSchool();
+  const finalLabel = label ?? (existing?.schoolId === schoolId ? existing.label : "");
+  localStorage.setItem("school", JSON.stringify({ schoolId, label: finalLabel }));
+  showSelectedSchool(schoolId, finalLabel);
+}
 
 function todayInTaipei() {
   return new Intl.DateTimeFormat("en-CA", { timeZone: "Asia/Taipei", year: "numeric", month: "2-digit", day: "2-digit" }).format(new Date());
@@ -53,7 +76,7 @@ async function resolveCandidate(candidate) {
   if (!response.ok || !result.ok) throw new Error("無法自動確認這間學校的代碼，請稍後再試或改搜尋其他關鍵字。");
   confirmedSchoolId = result.school_id;
   subscribeButton.disabled = false;
-  localStorage.setItem("schoolId", result.school_id);
+  rememberSchool(result.school_id, `${candidate.county} ${candidate.school_name}`);
   directoryStatus.textContent = `已確認：${candidate.county} ${candidate.school_name}`;
   await loadMenu(result.school_id, menuDate.value || todayInTaipei()).catch((error) => { status.textContent = error.message; });
 }
@@ -151,7 +174,7 @@ subscribeButton.addEventListener("click", async () => {
       applicationServerKey: applicationServerKey(config.vapidPublicKey),
     });
     await post("/api/subscribe", { schoolId, subscription: subscription.toJSON() });
-    localStorage.setItem("schoolId", schoolId);
+    rememberSchool(schoolId);
     status.textContent = "已開啟通知；午餐照片上傳後會告訴你。";
   } catch (error) {
     status.textContent = error instanceof Error ? error.message : "訂閱失敗。";
@@ -219,11 +242,13 @@ menuDate.addEventListener("change", () => {
 });
 
 const params = new URLSearchParams(location.search);
-const initialSchool = params.get("schoolId") || localStorage.getItem("schoolId") || "";
+const storedSchool = readStoredSchool();
+const initialSchool = params.get("schoolId") || storedSchool?.schoolId || "";
 const initialDate = params.get("date") || todayInTaipei();
 confirmedSchoolId = initialSchool;
 menuDate.max = todayInTaipei();
 menuDate.value = initialDate;
 subscribeButton.disabled = !initialSchool;
+showSelectedSchool(initialSchool, storedSchool?.schoolId === initialSchool ? storedSchool.label : "");
 if (initialSchool) loadMenu(initialSchool, initialDate).catch((error) => { status.textContent = error.message; });
 workerRegistration().catch(() => {});
