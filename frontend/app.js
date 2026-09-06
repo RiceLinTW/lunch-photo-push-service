@@ -32,7 +32,7 @@ function readStoredSchool() {
 
 function showSelectedSchool(schoolId, label) {
   if (!schoolId) { selectedSchoolLabel.hidden = true; return; }
-  selectedSchoolLabel.textContent = label ? `目前已選擇：${label}` : `目前已選擇學校（代碼 ${schoolId}）`;
+  selectedSchoolLabel.textContent = label ? `目前已選擇：${label}` : "正在確認學校資訊…";
   selectedSchoolLabel.hidden = false;
 }
 

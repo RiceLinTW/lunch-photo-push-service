@@ -32,13 +32,13 @@ export function taipeiDate(now = new Date()): string {
   return `${part("year")}-${part("month")}-${part("day")}`;
 }
 
-export function notificationPayload(schoolId: string, date: string, frontendUrl: string) {
+export function notificationPayload(schoolId: string, date: string, frontendUrl: string, schoolName?: string) {
   const url = new URL(frontendUrl);
   url.searchParams.set("schoolId", schoolId);
   url.searchParams.set("date", date);
   return {
-    title: "今日午餐照片已上傳",
-    body: "點一下查看學校今日菜色照片。",
+    title: schoolName ? `${schoolName}午餐照片已上傳` : "今日午餐照片已上傳",
+    body: "點一下查看今日菜色照片。",
     url: url.toString(),
   };
 }
@@ -93,7 +93,13 @@ export async function checkMenusAndNotify(
     const subscriptions = await env.DB.prepare(
       "SELECT endpoint, p256dh, auth FROM subscriptions WHERE school_id = ?",
     ).bind(schoolId).all<SubscriptionRow>();
-    const payload = notificationPayload(schoolId, date, frontendUrl);
+    // A confirmed schoolId always equals the school_code it was verified against
+    // (see schools.ts resolveSchool), so this lookup is safe even though the two
+    // are conceptually different columns.
+    const directoryEntry = await env.DB.prepare(
+      "SELECT school_name FROM school_directory WHERE school_code = ?",
+    ).bind(schoolId).all<{ school_name: string }>();
+    const payload = notificationPayload(schoolId, date, frontendUrl, directoryEntry.results[0]?.school_name);
     await Promise.all(subscriptions.results.map(async (subscription) => {
       try {
         const response = await push(subscription, payload, {

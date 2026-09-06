@@ -7,6 +7,7 @@ interface State {
   schools: string[];
   subscriptions: Array<{ school_id: string; endpoint: string; p256dh: string; auth: string; failure_count: number }>;
   logs: Set<string>;
+  names?: Record<string, string>;
 }
 
 class MenuStatement {
@@ -19,6 +20,11 @@ class MenuStatement {
     if (this.sql.includes("SELECT DISTINCT")) {
       const date = this.args[0];
       return { results: this.state.schools.filter((school) => !this.state.logs.has(`${school}:${date}`)).map((school_id) => ({ school_id })) as T[] };
+    }
+    if (this.sql.includes("school_directory")) {
+      const school = this.args[0];
+      const name = this.state.names?.[school as string];
+      return { results: name ? [{ school_name: name }] as T[] : [] as T[] };
     }
     const school = this.args[0];
     return { results: this.state.subscriptions.filter((row) => row.school_id === school).map(({ endpoint, p256dh, auth }) => ({ endpoint, p256dh, auth })) as T[] };
@@ -60,8 +66,8 @@ test("an already-notified school causes zero source API calls", async () => {
   assert.equal(calls, 0);
 });
 
-test("a photo claims the daily log and pushes once", async () => {
-  const state: State = { schools: ["123"], subscriptions: [{ ...subscription }], logs: new Set() };
+test("a photo claims the daily log and pushes once, with the school name in the title", async () => {
+  const state: State = { schools: ["123"], subscriptions: [{ ...subscription }], logs: new Set(), names: { "123": "測試國小" } };
   let sourceCalls = 0;
   const fetcher = async (input: URL | RequestInfo) => {
     sourceCalls++;
@@ -74,6 +80,7 @@ test("a photo claims the daily log and pushes once", async () => {
   assert.equal(sourceCalls, 2);
   assert.equal(state.logs.has("123:2026-09-04"), true);
   assert.equal(payloads.length, 1);
+  assert.equal((payloads[0] as { title: string }).title, "測試國小午餐照片已上傳");
   assert.match((payloads[0] as { url: string }).url, /schoolId=123/);
   assert.match((payloads[0] as { url: string }).url, /date=2026-09-04/);
 });
@@ -97,7 +104,13 @@ test("a 410 push response increments failure_count", async () => {
 test("notification payload always contains title, body, school and date", () => {
   const payload = notificationPayload("school/1", "2026-09-04", "https://frontend.test/menu");
   assert.ok(payload.title); assert.ok(payload.body);
+  assert.doesNotMatch(payload.title, /school\/1/); // never falls back to showing the raw id
   const url = new URL(payload.url);
   assert.equal(url.searchParams.get("schoolId"), "school/1");
   assert.equal(url.searchParams.get("date"), "2026-09-04");
+});
+
+test("notification payload uses the school name in the title when known", () => {
+  const payload = notificationPayload("school/1", "2026-09-04", "https://frontend.test/menu", "測試國小");
+  assert.equal(payload.title, "測試國小午餐照片已上傳");
 });
