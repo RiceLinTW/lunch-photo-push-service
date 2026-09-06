@@ -1,6 +1,6 @@
 import assert from "node:assert/strict";
 import test from "node:test";
-import { resolveSchool, searchSchools } from "../src/schools.ts";
+import { lookupSchool, resolveSchool, searchSchools } from "../src/schools.ts";
 
 const schools = [
   { school_code: "024701", school_name: "縣立清溝國小", county: "宜蘭縣" },
@@ -82,4 +82,35 @@ test("resolve reports inconclusive after seven empty offerings without caching",
   const response = await resolveSchool(new Request("https://worker.test/api/schools/resolve", { method: "POST", body: JSON.stringify({ school_code: "024701" }) }), db as unknown as D1Database, async () => { calls++; return Response.json({ data: [] }); }, new Date("2026-09-04T02:00:00Z"));
   assert.deepEqual(await response.json(), { ok: false });
   assert.equal(calls, 7); assert.equal(db.cached, null);
+});
+
+class LookupStatement {
+  bindings: string[] = [];
+  private readonly sql: string;
+  constructor(sql: string) { this.sql = sql; }
+  bind(...values: string[]) { this.bindings = values; return this; }
+  async all<T>() {
+    assert.match(this.sql, /WHERE school_code = \?/);
+    const match = schools.find((school) => school.school_code === this.bindings[0]);
+    return { results: match ? [{ school_name: match.school_name, county: match.county }] as T[] : [] as T[] };
+  }
+}
+
+function lookupDatabase(): D1Database {
+  return { prepare: (sql: string) => new LookupStatement(sql) } as unknown as D1Database;
+}
+
+test("lookup returns the school name and county for an already-confirmed schoolId", async () => {
+  const response = await lookupSchool(new Request("https://worker.test/api/schools/lookup?schoolId=333609"), lookupDatabase());
+  assert.deepEqual(await response.json(), { ok: true, school_name: "市立公館國小", county: "臺北市" });
+});
+
+test("lookup returns ok:false for a schoolId with no matching directory entry", async () => {
+  const response = await lookupSchool(new Request("https://worker.test/api/schools/lookup?schoolId=00000000"), lookupDatabase());
+  assert.deepEqual(await response.json(), { ok: false });
+});
+
+test("lookup requires a schoolId", async () => {
+  const response = await lookupSchool(new Request("https://worker.test/api/schools/lookup"), lookupDatabase());
+  assert.equal(response.status, 400);
 });

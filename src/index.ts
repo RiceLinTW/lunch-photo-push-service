@@ -8,7 +8,7 @@ export interface Env {
 
 import { checkMenusAndNotify, fetchSchoolMenu } from "./menu.ts";
 import { proxyPhoto } from "./photo.ts";
-import { resolveSchool, searchSchools } from "./schools.ts";
+import { lookupSchool, resolveSchool, searchSchools } from "./schools.ts";
 
 interface PushSubscriptionInput {
   endpoint: string;
@@ -107,6 +107,7 @@ export async function handleRequest(request: Request, env: Env): Promise<Respons
   if (request.method === "POST" && pathname === "/api/unsubscribe") return unsubscribe(request, env.DB);
   if (request.method === "GET" && pathname === "/api/schools/search") return searchSchools(request, env.DB);
   if (request.method === "POST" && pathname === "/api/schools/resolve") return resolveSchool(request, env.DB);
+  if (request.method === "GET" && pathname === "/api/schools/lookup") return lookupSchool(request, env.DB);
   if (request.method === "GET" && pathname.startsWith("/api/photo/")) {
     const dishId = decodeURIComponent(pathname.slice("/api/photo/".length));
     return proxyPhoto(request, dishId);

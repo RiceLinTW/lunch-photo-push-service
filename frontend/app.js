@@ -11,8 +11,15 @@ const menuDate = document.querySelector("#menu-date");
 const installButton = document.querySelector("#install-app");
 const installHint = document.querySelector("#install-hint");
 const selectedSchoolLabel = document.querySelector("#selected-school");
+const changeSchoolButton = document.querySelector("#change-school");
+const schoolSearchSection = document.querySelector("#school-search");
 
 let confirmedSchoolId = "";
+
+function showSchoolSearch(visible) {
+  schoolSearchSection.hidden = !visible;
+  changeSchoolButton.hidden = visible;
+}
 
 function readStoredSchool() {
   try {
@@ -78,6 +85,7 @@ async function resolveCandidate(candidate) {
   subscribeButton.disabled = false;
   rememberSchool(result.school_id, `${candidate.county} ${candidate.school_name}`);
   directoryStatus.textContent = `已確認：${candidate.county} ${candidate.school_name}`;
+  showSchoolSearch(false);
   await loadMenu(result.school_id, menuDate.value || todayInTaipei()).catch((error) => { status.textContent = error.message; });
 }
 
@@ -117,6 +125,14 @@ async function performSearch(query) {
     directoryStatus.textContent = error instanceof Error ? error.message : "搜尋失敗。";
   }
 }
+
+changeSchoolButton.addEventListener("click", () => {
+  queryInput.value = "";
+  resultsElement.replaceChildren();
+  directoryStatus.textContent = "";
+  showSchoolSearch(true);
+  queryInput.focus();
+});
 
 queryInput.addEventListener("input", () => {
   clearTimeout(debounceTimer);
@@ -244,11 +260,19 @@ menuDate.addEventListener("change", () => {
 const params = new URLSearchParams(location.search);
 const storedSchool = readStoredSchool();
 const initialSchool = params.get("schoolId") || storedSchool?.schoolId || "";
+const initialLabel = storedSchool?.schoolId === initialSchool ? storedSchool.label : "";
 const initialDate = params.get("date") || todayInTaipei();
 confirmedSchoolId = initialSchool;
 menuDate.max = todayInTaipei();
 menuDate.value = initialDate;
 subscribeButton.disabled = !initialSchool;
-showSelectedSchool(initialSchool, storedSchool?.schoolId === initialSchool ? storedSchool.label : "");
+showSelectedSchool(initialSchool, initialLabel);
+showSchoolSearch(!initialSchool);
 if (initialSchool) loadMenu(initialSchool, initialDate).catch((error) => { status.textContent = error.message; });
+if (initialSchool && !initialLabel) {
+  fetch(`${config.apiBaseUrl}/api/schools/lookup?${new URLSearchParams({ schoolId: initialSchool })}`)
+    .then((response) => response.json())
+    .then((result) => { if (result.ok) rememberSchool(initialSchool, `${result.county} ${result.school_name}`); })
+    .catch(() => {});
+}
 workerRegistration().catch(() => {});

@@ -26,6 +26,7 @@ button { padding: 0 18px; border: 0; background: var(--ink); color: #fff; font-w
 button:disabled { cursor: wait; opacity: .55; }
 .hint { color: #6b5b4e; font-size: .9rem; }
 #selected-school { margin-bottom: 16px; font-weight: 700; color: var(--ink); }
+#change-school { margin-bottom: 16px; }
 .install-banner { margin: 0 0 20px; padding: 14px 16px; border: 1px solid #f0c898; border-radius: 16px; background: #fff2de; color: #7a4a12; font-size: .9rem; }
 a { color: #a83b16; }
 .actions { display: flex; flex-wrap: wrap; gap: 10px; margin-top: 24px; }

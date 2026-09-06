@@ -37,6 +37,19 @@ export async function searchSchools(request: Request, db: D1Database): Promise<R
   return json({ ok: true, schools: result.results });
 }
 
+export async function lookupSchool(request: Request, db: D1Database): Promise<Response> {
+  const url = new URL(request.url);
+  const schoolId = url.searchParams.get("schoolId")?.trim() ?? "";
+  if (!schoolId) return json({ ok: false, error: "schoolId is required" }, 400);
+  // Every successful resolve stores school_id === school_code, so a confirmed
+  // schoolId can always be looked back up as a school_code.
+  const result = await db.prepare("SELECT school_name, county FROM school_directory WHERE school_code = ?")
+    .bind(schoolId).all<Pick<SchoolDirectoryRow, "school_name" | "county">>();
+  const row = result.results[0];
+  if (!row) return json({ ok: false });
+  return json({ ok: true, school_name: row.school_name, county: row.county });
+}
+
 function taipeiDate(now: Date): string {
   const parts = new Intl.DateTimeFormat("en-CA", { timeZone: "Asia/Taipei", year: "numeric", month: "2-digit", day: "2-digit" }).formatToParts(now);
   const value = (type: string) => parts.find((part) => part.type === type)?.value ?? "";

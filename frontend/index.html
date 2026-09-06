@@ -24,10 +24,13 @@
     <section class="card" aria-labelledby="school-heading">
       <h2 id="school-heading">選擇學校</h2>
       <p id="selected-school" class="hint" hidden></p>
-      <label for="school-query">學校名稱</label>
-      <input id="school-query" autocomplete="off" placeholder="輸入學校名稱，例如：大安">
-      <div id="school-results" class="school-results" aria-live="polite"></div>
-      <p id="directory-status" class="hint"></p>
+      <button id="change-school" class="secondary" type="button" hidden>重新選擇學校</button>
+      <div id="school-search">
+        <label for="school-query">學校名稱</label>
+        <input id="school-query" autocomplete="off" placeholder="輸入學校名稱，例如：大安">
+        <div id="school-results" class="school-results" aria-live="polite"></div>
+        <p id="directory-status" class="hint"></p>
+      </div>
       <div class="actions">
         <button id="install-app" class="secondary" type="button" hidden>加入主畫面</button>
         <button id="subscribe" class="primary" type="button" disabled>開啟照片通知</button>
