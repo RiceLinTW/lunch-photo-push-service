@@ -1,6 +1,6 @@
 const config = globalThis.APP_CONFIG;
-const SW_VERSION = "2";
-const APP_VERSION = "2026-09-10.1";
+const SW_VERSION = "3";
+const APP_VERSION = "2026-09-10.2";
 
 function showBuildTag() {
   const tag = document.querySelector("#build-tag");
