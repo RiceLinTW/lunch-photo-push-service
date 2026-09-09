@@ -94,9 +94,21 @@ test("a menu without photos writes no log and sends no push", async () => {
   assert.equal(pushes, 0);
 });
 
+test("a placeholder PicturePath with no file extension writes no log and sends no push", async () => {
+  // The source platform fills PicturePath with a placeholder ending in a bare
+  // "." before any photo is actually uploaded - a non-empty check alone would
+  // treat every dish as photographed from the moment the menu is published.
+  const state: State = { schools: ["123"], subscriptions: [{ ...subscription }], logs: new Set() };
+  const fetcher = async (input: URL | RequestInfo) => Response.json(new URL(String(input)).pathname === "/offered/meal" ? { data: [{ BatchDataId: "batch" }] } : { data: [{ PicturePath: "/mnt/hdb/cateringservice/dish/1//1_2." }] });
+  let pushes = 0;
+  await checkMenusAndNotify(environment(state), "https://frontend.test/", { now, fetch: fetcher as typeof fetch, push: (async () => { pushes++; return new Response(null, { status: 201 }); }) as never });
+  assert.equal(state.logs.size, 0);
+  assert.equal(pushes, 0);
+});
+
 test("a 410 push response increments failure_count", async () => {
   const state: State = { schools: ["123"], subscriptions: [{ ...subscription }], logs: new Set() };
-  const fetcher = async (input: URL | RequestInfo) => Response.json(new URL(String(input)).pathname === "/offered/meal" ? { data: [{ BatchDataId: "batch" }] } : { data: [{ PicturePath: "photo" }] });
+  const fetcher = async (input: URL | RequestInfo) => Response.json(new URL(String(input)).pathname === "/offered/meal" ? { data: [{ BatchDataId: "batch" }] } : { data: [{ PicturePath: "photo.jpg" }] });
   await checkMenusAndNotify(environment(state), "https://frontend.test/", { now, fetch: fetcher as typeof fetch, push: (async () => new Response(null, { status: 410 })) as never });
   assert.equal(state.subscriptions[0].failure_count, 1);
 });
