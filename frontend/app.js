@@ -243,6 +243,10 @@ function renderDishes(dishes) {
       image.hidden = true;
       retryButton.hidden = false;
     });
+    image.addEventListener("load", () => {
+      image.hidden = false;
+      retryButton.hidden = true;
+    });
     retryButton.addEventListener("click", loadPhoto);
     image.src = photoUrl;
     const copy = document.createElement("div");
