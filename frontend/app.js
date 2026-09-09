@@ -212,15 +212,9 @@ unsubscribeButton.addEventListener("click", async () => {
   } finally { unsubscribeButton.disabled = false; }
 });
 
-// The source platform fills PicturePath with a placeholder ending in a bare
-// "." before a photo is actually uploaded, and only appends a real file
-// extension (e.g. ".jpg") once one exists - so a truthy check alone treats
-// every not-yet-photographed dish as photographed.
-const PHOTO_EXTENSION = /\.(jpe?g|png|gif|webp)$/i;
-
 function renderDishes(dishes) {
   menuElement.replaceChildren();
-  const photographed = dishes.filter((dish) => PHOTO_EXTENSION.test(dish.PicturePath || "") && dish.DishId != null);
+  const photographed = dishes.filter((dish) => dish.PicturePath && dish.DishId != null);
   if (!photographed.length) {
     const message = document.createElement("p");
     message.className = "empty";

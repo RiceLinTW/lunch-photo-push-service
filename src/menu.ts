@@ -62,15 +62,9 @@ export async function fetchSchoolMenu(schoolId: string, date: string, fetcher: t
   return allDishes;
 }
 
-// The source platform always fills PicturePath with a placeholder path ending
-// in a bare "." before a dish photo is actually uploaded, and only appends a
-// real file extension (e.g. ".jpg") once a photo exists - so a non-empty
-// check alone is a false positive for "has photo" on every dish, every day.
-const PHOTO_EXTENSION = /\.(jpe?g|png|gif|webp)$/i;
-
 async function schoolHasPhoto(schoolId: string, date: string, fetcher: typeof fetch): Promise<boolean> {
   const dishes = await fetchSchoolMenu(schoolId, date, fetcher);
-  return dishes.some((dish) => typeof dish.PicturePath === "string" && PHOTO_EXTENSION.test(dish.PicturePath));
+  return dishes.some((dish) => typeof dish.PicturePath === "string" && dish.PicturePath.trim() !== "");
 }
 
 export async function checkMenusAndNotify(
