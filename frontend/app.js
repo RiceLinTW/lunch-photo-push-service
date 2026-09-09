@@ -1,4 +1,5 @@
 const config = globalThis.APP_CONFIG;
+const SW_VERSION = "2";
 const queryInput = document.querySelector("#school-query");
 const resultsElement = document.querySelector("#school-results");
 const directoryStatus = document.querySelector("#directory-status");
@@ -55,7 +56,7 @@ function applicationServerKey(value) {
 
 async function workerRegistration() {
   if (!("serviceWorker" in navigator) || !("PushManager" in globalThis)) throw new Error("此瀏覽器不支援網頁推播。");
-  await navigator.serviceWorker.register("sw.js");
+  await navigator.serviceWorker.register(`sw.js?v=${SW_VERSION}`, { updateViaCache: "none" });
   return navigator.serviceWorker.ready;
 }
 

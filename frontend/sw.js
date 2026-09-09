@@ -1,4 +1,4 @@
-const CACHE_NAME = "lunch-photo-shell-v1";
+const CACHE_NAME = "lunch-photo-shell-v2";
 const APP_SHELL = ["./", "index.html", "styles.css", "config.js", "app.js", "manifest.json", "icons/icon.svg"];
 
 self.addEventListener("install", (event) => {
