@@ -225,17 +225,33 @@ function renderDishes(dishes) {
   for (const dish of photographed) {
     const article = document.createElement("article");
     article.className = "dish";
+    const photoUrl = `${config.apiBaseUrl}/api/photo/${encodeURIComponent(dish.DishId)}`;
     const image = document.createElement("img");
-    image.src = `${config.apiBaseUrl}/api/photo/${encodeURIComponent(dish.DishId)}`;
     image.alt = dish.DishName ? `${dish.DishName}照片` : "午餐菜色照片";
     image.loading = "lazy";
+    const retryButton = document.createElement("button");
+    retryButton.type = "button";
+    retryButton.className = "photo-retry";
+    retryButton.textContent = "照片讀取失敗，點一下重新載入";
+    retryButton.hidden = true;
+    const loadPhoto = () => {
+      retryButton.hidden = true;
+      image.hidden = false;
+      image.src = `${photoUrl}?retry=${Date.now()}`;
+    };
+    image.addEventListener("error", () => {
+      image.hidden = true;
+      retryButton.hidden = false;
+    });
+    retryButton.addEventListener("click", loadPhoto);
+    image.src = photoUrl;
     const copy = document.createElement("div");
     const name = document.createElement("h3");
     name.textContent = dish.DishName || "未命名菜色";
     const type = document.createElement("small");
     type.textContent = dish.DishType || "";
     copy.append(name, type);
-    article.append(image, copy);
+    article.append(image, retryButton, copy);
     menuElement.append(article);
   }
 }
