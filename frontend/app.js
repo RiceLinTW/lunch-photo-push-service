@@ -1,5 +1,15 @@
 const config = globalThis.APP_CONFIG;
 const SW_VERSION = "2";
+const APP_VERSION = "2026-09-10.1";
+
+function showBuildTag() {
+  const tag = document.querySelector("#build-tag");
+  if (!tag) return;
+  const controllerUrl = navigator.serviceWorker?.controller?.scriptURL ?? "(尚未由 service worker 控制)";
+  tag.textContent = `App ${APP_VERSION} · SW: ${controllerUrl}`;
+}
+showBuildTag();
+navigator.serviceWorker?.addEventListener?.("controllerchange", showBuildTag);
 const queryInput = document.querySelector("#school-query");
 const resultsElement = document.querySelector("#school-results");
 const directoryStatus = document.querySelector("#directory-status");
@@ -56,7 +66,8 @@ function applicationServerKey(value) {
 
 async function workerRegistration() {
   if (!("serviceWorker" in navigator) || !("PushManager" in globalThis)) throw new Error("此瀏覽器不支援網頁推播。");
-  await navigator.serviceWorker.register(`sw.js?v=${SW_VERSION}`, { updateViaCache: "none" });
+  const registration = await navigator.serviceWorker.register(`sw.js?v=${SW_VERSION}`, { updateViaCache: "none" });
+  registration.update().catch(() => {});
   return navigator.serviceWorker.ready;
 }
 
