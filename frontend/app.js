@@ -1,15 +1,5 @@
 const config = globalThis.APP_CONFIG;
 const SW_VERSION = "4";
-const APP_VERSION = "2026-09-10.3";
-
-function showBuildTag() {
-  const tag = document.querySelector("#build-tag");
-  if (!tag) return;
-  const controllerUrl = navigator.serviceWorker?.controller?.scriptURL ?? "(尚未由 service worker 控制)";
-  tag.textContent = `App ${APP_VERSION} · SW: ${controllerUrl}`;
-}
-showBuildTag();
-navigator.serviceWorker?.addEventListener?.("controllerchange", showBuildTag);
 const queryInput = document.querySelector("#school-query");
 const resultsElement = document.querySelector("#school-results");
 const directoryStatus = document.querySelector("#directory-status");
