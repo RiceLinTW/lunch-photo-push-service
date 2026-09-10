@@ -230,6 +230,7 @@ function createDishPhoto(photoUrl, altText) {
   let objectUrl = null;
 
   const showError = (message) => {
+    frame.classList.remove("photo-loaded");
     const retryButton = document.createElement("button");
     retryButton.type = "button";
     retryButton.className = "photo-retry";
@@ -239,6 +240,7 @@ function createDishPhoto(photoUrl, altText) {
   };
 
   const loadPhoto = async () => {
+    frame.classList.remove("photo-loaded");
     const loading = document.createElement("p");
     loading.className = "photo-status";
     loading.textContent = "照片載入中…";
@@ -257,6 +259,7 @@ function createDishPhoto(photoUrl, altText) {
       image.src = objectUrl;
       image.alt = altText;
       frame.replaceChildren(image);
+      frame.classList.add("photo-loaded");
     } catch {
       showError("照片讀取失敗（網路錯誤），點一下重新載入");
     }
