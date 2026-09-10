@@ -53,6 +53,7 @@ function environment(state: State): Env {
     VAPID_PUBLIC_KEY: "public",
     VAPID_SUBJECT: "mailto:test@example.com",
     FRONTEND_URL: "https://frontend.test/",
+    CRON_TRIGGER_TOKEN: "cron-secret",
   };
 }
 

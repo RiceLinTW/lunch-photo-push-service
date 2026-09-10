@@ -4,6 +4,7 @@ export interface Env {
   VAPID_PUBLIC_KEY: string;
   VAPID_SUBJECT: string;
   FRONTEND_URL: string;
+  CRON_TRIGGER_TOKEN: string;
 }
 
 import { checkMenusAndNotify, fetchSchoolMenu } from "./menu.ts";
@@ -99,12 +100,29 @@ export async function recordDeliveryResult(db: D1Database, endpoint: string, sta
   await db.prepare("DELETE FROM subscriptions WHERE endpoint = ? AND failure_count >= 3").bind(endpoint).run();
 }
 
+export async function triggerCron(
+  request: Request,
+  env: Env,
+  checker: typeof checkMenusAndNotify = checkMenusAndNotify,
+): Promise<Response> {
+  const token = request.headers.get("x-cron-token");
+  if (!env.CRON_TRIGGER_TOKEN || token !== env.CRON_TRIGGER_TOKEN) return json({ ok: false, error: "Unauthorized" }, 401);
+  try {
+    await checker(env, env.FRONTEND_URL);
+    return json({ ok: true });
+  } catch (error) {
+    const message = error instanceof Error ? error.message : String(error);
+    return json({ ok: false, error: message }, 500);
+  }
+}
+
 export async function handleRequest(request: Request, env: Env): Promise<Response> {
   const url = new URL(request.url);
   const { pathname } = url;
   if (request.method === "OPTIONS") return new Response(null, { status: 204, headers: CORS_HEADERS });
   if (request.method === "POST" && pathname === "/api/subscribe") return subscribe(request, env.DB);
   if (request.method === "POST" && pathname === "/api/unsubscribe") return unsubscribe(request, env.DB);
+  if (request.method === "POST" && pathname === "/api/cron/trigger") return triggerCron(request, env);
   if (request.method === "GET" && pathname === "/api/schools/search") return searchSchools(request, env.DB);
   if (request.method === "POST" && pathname === "/api/schools/resolve") return resolveSchool(request, env.DB);
   if (request.method === "GET" && pathname === "/api/schools/lookup") return lookupSchool(request, env.DB);
@@ -129,7 +147,4 @@ export async function handleRequest(request: Request, env: Env): Promise<Respons
 
 export default {
   fetch: handleRequest,
-  async scheduled(_controller, env, ctx) {
-    ctx.waitUntil(checkMenusAndNotify(env, env.FRONTEND_URL));
-  },
 } satisfies ExportedHandler<Env>;
