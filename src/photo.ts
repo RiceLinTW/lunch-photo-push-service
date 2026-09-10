@@ -3,6 +3,11 @@ import { SOURCE_REQUEST_HEADERS } from "./source-headers.ts";
 const PHOTO_ORIGIN = "https://fatraceschool.k12ea.gov.tw";
 const THIRTY_DAYS = 30 * 24 * 60 * 60;
 const CORS_HEADERS = { "access-control-allow-origin": "*" };
+// Bump this whenever a cached response's headers/shape changes (e.g. adding
+// CORS headers below) - caches.default is per-datacenter, so old entries
+// cached before such a change would otherwise keep being replayed as-is for
+// up to THIRTY_DAYS at whichever edge node cached them.
+const CACHE_KEY_VERSION = "2";
 
 function withCacheStatus(response: Response, status: "HIT" | "MISS"): Response {
   const headers = new Headers(response.headers);
@@ -18,7 +23,9 @@ export async function proxyPhoto(
 ): Promise<Response> {
   if (!dishId || dishId.length > 200) return Response.json({ ok: false, error: "Invalid dishId" }, { status: 400, headers: CORS_HEADERS });
 
-  const cacheKey = new Request(request.url, { method: "GET" });
+  const cacheUrl = new URL(request.url);
+  cacheUrl.searchParams.set("cachever", CACHE_KEY_VERSION);
+  const cacheKey = new Request(cacheUrl, { method: "GET" });
   const cached = await cache.match(cacheKey);
   if (cached) return withCacheStatus(cached, "HIT");
 
