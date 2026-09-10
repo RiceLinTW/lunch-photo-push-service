@@ -1,6 +1,6 @@
 const config = globalThis.APP_CONFIG;
-const SW_VERSION = "3";
-const APP_VERSION = "2026-09-10.2";
+const SW_VERSION = "4";
+const APP_VERSION = "2026-09-10.3";
 
 function showBuildTag() {
   const tag = document.querySelector("#build-tag");
@@ -224,6 +224,48 @@ unsubscribeButton.addEventListener("click", async () => {
   } finally { unsubscribeButton.disabled = false; }
 });
 
+function createDishPhoto(photoUrl, altText) {
+  const frame = document.createElement("div");
+  frame.className = "dish-photo";
+  let objectUrl = null;
+
+  const showError = (message) => {
+    const retryButton = document.createElement("button");
+    retryButton.type = "button";
+    retryButton.className = "photo-retry";
+    retryButton.textContent = message;
+    retryButton.addEventListener("click", loadPhoto);
+    frame.replaceChildren(retryButton);
+  };
+
+  const loadPhoto = async () => {
+    const loading = document.createElement("p");
+    loading.className = "photo-status";
+    loading.textContent = "照片載入中…";
+    frame.replaceChildren(loading);
+
+    try {
+      const response = await fetch(photoUrl, { cache: "no-store" });
+      if (!response.ok) {
+        showError(`照片讀取失敗（HTTP ${response.status}），點一下重新載入`);
+        return;
+      }
+      const blob = await response.blob();
+      if (objectUrl) URL.revokeObjectURL(objectUrl);
+      objectUrl = URL.createObjectURL(blob);
+      const image = document.createElement("img");
+      image.src = objectUrl;
+      image.alt = altText;
+      frame.replaceChildren(image);
+    } catch {
+      showError("照片讀取失敗（網路錯誤），點一下重新載入");
+    }
+  };
+
+  loadPhoto();
+  return frame;
+}
+
 function renderDishes(dishes) {
   menuElement.replaceChildren();
   const photographed = dishes.filter((dish) => dish.PicturePath && dish.DishId != null);
@@ -238,36 +280,15 @@ function renderDishes(dishes) {
     const article = document.createElement("article");
     article.className = "dish";
     const photoUrl = `${config.apiBaseUrl}/api/photo/${encodeURIComponent(dish.DishId)}`;
-    const image = document.createElement("img");
-    image.alt = dish.DishName ? `${dish.DishName}照片` : "午餐菜色照片";
-    image.loading = "lazy";
-    const retryButton = document.createElement("button");
-    retryButton.type = "button";
-    retryButton.className = "photo-retry";
-    retryButton.textContent = "照片讀取失敗，點一下重新載入";
-    retryButton.hidden = true;
-    const loadPhoto = () => {
-      retryButton.hidden = true;
-      image.hidden = false;
-      image.src = `${photoUrl}?retry=${Date.now()}`;
-    };
-    image.addEventListener("error", () => {
-      image.hidden = true;
-      retryButton.hidden = false;
-    });
-    image.addEventListener("load", () => {
-      image.hidden = false;
-      retryButton.hidden = true;
-    });
-    retryButton.addEventListener("click", loadPhoto);
-    image.src = photoUrl;
+    const altText = dish.DishName ? `${dish.DishName}照片` : "午餐菜色照片";
+    const photoFrame = createDishPhoto(photoUrl, altText);
     const copy = document.createElement("div");
     const name = document.createElement("h3");
     name.textContent = dish.DishName || "未命名菜色";
     const type = document.createElement("small");
     type.textContent = dish.DishType || "";
     copy.append(name, type);
-    article.append(image, retryButton, copy);
+    article.append(photoFrame, copy);
     menuElement.append(article);
   }
 }
