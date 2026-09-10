@@ -177,12 +177,11 @@ subscribeButton.addEventListener("click", async () => {
       deferredInstallPrompt = null;
       installButton.hidden = true;
     }
+    if (isIOS && !isStandalone) {
+      throw new Error("請先將本頁加入主畫面（分享 → 加入主畫面），再從主畫面開啟本 App 才能開啟通知。");
+    }
     if (!("Notification" in window)) {
-      throw new Error(
-        navigator.standalone === false
-          ? "請先將本頁加入主畫面（分享 → 加入主畫面），再從主畫面開啟本 App 才能開啟通知。"
-          : "此瀏覽器不支援通知功能。",
-      );
+      throw new Error("此瀏覽器不支援通知功能。");
     }
     const permission = await Notification.requestPermission();
     if (permission !== "granted") throw new Error("需要允許通知才能訂閱。");
