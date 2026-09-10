@@ -49,4 +49,5 @@ a { color: #a83b16; }
 .school-result { width: 100%; padding: 12px 16px; text-align: left; background: #fff; color: var(--ink); border: 1px solid var(--line); }
 footer { padding: 24px; text-align: center; }
 footer span { margin: 0 8px; color: var(--line); }
+.bmc-button { height: 36px; width: auto; vertical-align: middle; }
 @media (max-width: 520px) { main { padding-top: 40px; } .field-row { flex-direction: column; } .field-row button { width: 100%; } }
