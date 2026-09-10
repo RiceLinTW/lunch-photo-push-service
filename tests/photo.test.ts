@@ -31,6 +31,9 @@ test("photo proxy preserves image type and caches by proxy URL for 30 days", asy
   assert.equal(first.headers.get("content-type"), "image/jpeg");
   assert.match(first.headers.get("cache-control")!, /max-age=2592000/);
   assert.equal(first.headers.get("cf-cache-status"), "MISS");
+  // Without this, the frontend's fetch()-based photo loading (not a plain
+  // <img src>) gets silently blocked as a cross-origin request every time.
+  assert.equal(first.headers.get("access-control-allow-origin"), "*");
   assert.equal(sourceUrl, "https://fatraceschool.k12ea.gov.tw/dish/pic/dish%2F123");
   assert.deepEqual(new Uint8Array(await first.arrayBuffer()), bytes);
 
@@ -44,7 +47,9 @@ test("failed source responses are not cached", async () => {
   let calls = 0;
   const fetcher = async () => { calls++; return new Response(null, { status: 404 }); };
   const request = new Request("https://worker.test/api/photo/missing");
-  assert.equal((await proxyPhoto(request, "missing", fetcher as typeof fetch, cache as unknown as Cache)).status, 404);
+  const first = await proxyPhoto(request, "missing", fetcher as typeof fetch, cache as unknown as Cache);
+  assert.equal(first.status, 404);
+  assert.equal(first.headers.get("access-control-allow-origin"), "*");
   assert.equal((await proxyPhoto(request, "missing", fetcher as typeof fetch, cache as unknown as Cache)).status, 404);
   assert.equal(calls, 2);
 });

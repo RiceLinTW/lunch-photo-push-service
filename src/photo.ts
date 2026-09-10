@@ -2,6 +2,7 @@ import { SOURCE_REQUEST_HEADERS } from "./source-headers.ts";
 
 const PHOTO_ORIGIN = "https://fatraceschool.k12ea.gov.tw";
 const THIRTY_DAYS = 30 * 24 * 60 * 60;
+const CORS_HEADERS = { "access-control-allow-origin": "*" };
 
 function withCacheStatus(response: Response, status: "HIT" | "MISS"): Response {
   const headers = new Headers(response.headers);
@@ -15,7 +16,7 @@ export async function proxyPhoto(
   fetcher: typeof fetch = fetch,
   cache: Cache = (caches as unknown as { default: Cache }).default,
 ): Promise<Response> {
-  if (!dishId || dishId.length > 200) return Response.json({ ok: false, error: "Invalid dishId" }, { status: 400 });
+  if (!dishId || dishId.length > 200) return Response.json({ ok: false, error: "Invalid dishId" }, { status: 400, headers: CORS_HEADERS });
 
   const cacheKey = new Request(request.url, { method: "GET" });
   const cached = await cache.match(cacheKey);
@@ -26,7 +27,7 @@ export async function proxyPhoto(
   if (!source.ok) {
     return Response.json(
       { ok: false, error: "Photo source request failed" },
-      { status: source.status === 404 ? 404 : 502 },
+      { status: source.status === 404 ? 404 : 502, headers: CORS_HEADERS },
     );
   }
 
@@ -36,6 +37,7 @@ export async function proxyPhoto(
     headers: {
       "content-type": contentType,
       "cache-control": `public, max-age=${THIRTY_DAYS}, s-maxage=${THIRTY_DAYS}, immutable`,
+      ...CORS_HEADERS,
     },
   });
   await cache.put(cacheKey, cacheable.clone());
