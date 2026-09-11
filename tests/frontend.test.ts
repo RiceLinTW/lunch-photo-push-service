@@ -30,6 +30,16 @@ test("frontend searches the directory and resolves candidates before enabling su
   assert.match(html, /id="school-results"/);
 });
 
+test("frontend shares the confirmed school with a copyable link and QR code", async () => {
+  const source = await readFile("frontend/app.js", "utf8");
+  const html = await readFile("frontend/index.html", "utf8");
+  assert.match(source, /navigator\.clipboard\.writeText\(shareUrl\(\)\)/);
+  assert.match(source, /schoolId=\$\{encodeURIComponent\(confirmedSchoolId\)\}/);
+  assert.match(source, /new QRCode\(qrContainer, shareUrl\(\)\)/);
+  assert.match(html, /id="share-section" hidden/);
+  assert.match(html, /src="vendor\/qrcode\.min\.js"/);
+});
+
 test("dish images only use the Worker photo proxy and never the source domain", async () => {
   const source = await readFile("frontend/app.js", "utf8");
   assert.match(source, /\/api\/photo\//);

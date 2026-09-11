@@ -14,8 +14,28 @@ const installHint = document.querySelector("#install-hint");
 const selectedSchoolLabel = document.querySelector("#selected-school");
 const changeSchoolButton = document.querySelector("#change-school");
 const schoolSearchSection = document.querySelector("#school-search");
+const shareSection = document.querySelector("#share-section");
+const copyLinkButton = document.querySelector("#copy-link");
+const showQrButton = document.querySelector("#show-qr");
+const shareStatus = document.querySelector("#share-status");
+const qrContainer = document.querySelector("#qr-code");
 
 let confirmedSchoolId = "";
+let qrInstance = null;
+
+function updateShareSection() {
+  shareSection.hidden = !confirmedSchoolId;
+  if (!confirmedSchoolId) {
+    qrContainer.hidden = true;
+    qrContainer.replaceChildren();
+    shareStatus.textContent = "";
+    showQrButton.textContent = "📱 顯示 QR Code";
+  }
+}
+
+function shareUrl() {
+  return `${location.origin}${location.pathname}?schoolId=${encodeURIComponent(confirmedSchoolId)}`;
+}
 
 function showSchoolSearch(visible) {
   schoolSearchSection.hidden = !visible;
@@ -84,6 +104,7 @@ async function resolveCandidate(candidate) {
   const result = await response.json();
   if (!response.ok || !result.ok) throw new Error("無法自動確認這間學校的代碼，請稍後再試或改搜尋其他關鍵字。");
   confirmedSchoolId = result.school_id;
+  updateShareSection();
   subscribeButton.disabled = false;
   rememberSchool(result.school_id, `${candidate.county} ${candidate.school_name}`);
   directoryStatus.textContent = `已確認：${candidate.county} ${candidate.school_name}`;
@@ -140,6 +161,27 @@ queryInput.addEventListener("input", () => {
   clearTimeout(debounceTimer);
   const value = queryInput.value.trim();
   debounceTimer = setTimeout(() => performSearch(value), 250);
+});
+
+copyLinkButton.addEventListener("click", async () => {
+  try {
+    await navigator.clipboard.writeText(shareUrl());
+    shareStatus.textContent = "已複製連結！";
+  } catch {
+    shareStatus.textContent = "複製失敗，請手動選取網址列的連結。";
+  }
+});
+
+showQrButton.addEventListener("click", () => {
+  qrContainer.hidden = !qrContainer.hidden;
+  showQrButton.textContent = qrContainer.hidden ? "📱 顯示 QR Code" : "隱藏 QR Code";
+  if (qrContainer.hidden) return;
+  if (!qrInstance) {
+    qrInstance = new QRCode(qrContainer, shareUrl());
+  } else {
+    qrInstance.clear();
+    qrInstance.makeCode(shareUrl());
+  }
 });
 
 let deferredInstallPrompt = null;
@@ -308,6 +350,7 @@ const initialSchool = params.get("schoolId") || storedSchool?.schoolId || "";
 const initialLabel = storedSchool?.schoolId === initialSchool ? storedSchool.label : "";
 const initialDate = params.get("date") || todayInTaipei();
 confirmedSchoolId = initialSchool;
+updateShareSection();
 menuDate.max = todayInTaipei();
 menuDate.value = initialDate;
 subscribeButton.disabled = !initialSchool;
