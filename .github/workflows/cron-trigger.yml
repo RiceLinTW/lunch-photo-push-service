@@ -1,8 +1,12 @@
 name: Trigger menu check
 
 on:
+  # GitHub's scheduler is unreliable right at :00/:30 (heaviest contention
+  # across every repo's cron jobs) - observed empirically here as most
+  # hourly ticks simply never firing, not just being delayed. Spread across
+  # 4 off-peak minutes per hour instead of relying on a single :00 tick.
   schedule:
-    - cron: "0 0-6 * * *"
+    - cron: "7,22,37,52 0-6 * * *"
   workflow_dispatch: {}
 
 jobs:
