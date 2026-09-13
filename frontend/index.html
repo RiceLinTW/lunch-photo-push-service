@@ -9,7 +9,7 @@
   <link rel="icon" href="icons/icon.svg" type="image/svg+xml">
   <link rel="apple-touch-icon" href="icons/icon.svg">
   <meta name="apple-mobile-web-app-title" content="國小午餐通知">
-  <link rel="stylesheet" href="styles.css?v=5">
+  <link rel="stylesheet" href="styles.css?v=6">
   <title>午餐好了沒？</title>
 </head>
 <body>
@@ -55,9 +55,13 @@
     <section id="menu-section" class="card" aria-labelledby="menu-heading" hidden>
       <div class="section-title">
         <h2 id="menu-heading">菜色</h2>
-        <input type="date" id="menu-date" aria-label="查詢日期">
       </div>
-      <div id="menu" class="menu-grid"></div>
+      <div class="week-nav">
+        <button id="prev-week" class="secondary" type="button">‹ 上一週</button>
+        <span id="week-range"></span>
+        <button id="next-week" class="secondary" type="button">下一週 ›</button>
+      </div>
+      <div id="menu"></div>
     </section>
   </main>
   <footer>
@@ -68,7 +72,7 @@
     <a href="https://buymeacoffee.com/rice.lin" target="_blank" rel="noreferrer"><img src="https://cdn.buymeacoffee.com/buttons/v2/default-yellow.png" alt="Buy me a coffee" class="bmc-button"></a>
   </footer>
   <script src="vendor/qrcode.min.js"></script>
-  <script src="config.js?v=5"></script>
-  <script src="app.js?v=5" type="module"></script>
+  <script src="config.js?v=6"></script>
+  <script src="app.js?v=6" type="module"></script>
 </body>
 </html>

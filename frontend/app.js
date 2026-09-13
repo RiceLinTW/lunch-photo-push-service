@@ -1,5 +1,5 @@
 const config = globalThis.APP_CONFIG;
-const SW_VERSION = "4";
+const SW_VERSION = "5";
 const queryInput = document.querySelector("#school-query");
 const resultsElement = document.querySelector("#school-results");
 const directoryStatus = document.querySelector("#directory-status");
@@ -8,7 +8,9 @@ const unsubscribeButton = document.querySelector("#unsubscribe");
 const status = document.querySelector("#status");
 const menuSection = document.querySelector("#menu-section");
 const menuElement = document.querySelector("#menu");
-const menuDate = document.querySelector("#menu-date");
+const weekRangeLabel = document.querySelector("#week-range");
+const prevWeekButton = document.querySelector("#prev-week");
+const nextWeekButton = document.querySelector("#next-week");
 const installButton = document.querySelector("#install-app");
 const installHint = document.querySelector("#install-hint");
 const selectedSchoolLabel = document.querySelector("#selected-school");
@@ -21,6 +23,7 @@ const shareStatus = document.querySelector("#share-status");
 const qrContainer = document.querySelector("#qr-code");
 
 let confirmedSchoolId = "";
+let weekMonday = "";
 let qrInstance = null;
 
 function updateShareSection() {
@@ -68,6 +71,17 @@ function todayInTaipei() {
   return new Intl.DateTimeFormat("en-CA", { timeZone: "Asia/Taipei", year: "numeric", month: "2-digit", day: "2-digit" }).format(new Date());
 }
 
+function addDays(dateStr, n) {
+  const date = new Date(`${dateStr}T00:00:00`);
+  date.setDate(date.getDate() + n);
+  return new Intl.DateTimeFormat("en-CA", { year: "numeric", month: "2-digit", day: "2-digit" }).format(date);
+}
+
+function mondayOf(dateStr) {
+  const day = new Date(`${dateStr}T00:00:00`).getDay();
+  return addDays(dateStr, day === 0 ? -6 : 1 - day);
+}
+
 function applicationServerKey(value) {
   const padding = "=".repeat((4 - value.length % 4) % 4);
   const binary = atob((value + padding).replaceAll("-", "+").replaceAll("_", "/"));
@@ -109,7 +123,7 @@ async function resolveCandidate(candidate) {
   rememberSchool(result.school_id, `${candidate.county} ${candidate.school_name}`);
   directoryStatus.textContent = `已確認：${candidate.county} ${candidate.school_name}`;
   showSchoolSearch(false);
-  await loadMenu(result.school_id, menuDate.value || todayInTaipei()).catch((error) => { status.textContent = error.message; });
+  await loadWeek(result.school_id, mondayOf(todayInTaipei())).catch((error) => { status.textContent = error.message; });
 }
 
 let searchToken = 0;
@@ -300,48 +314,130 @@ function createDishPhoto(photoUrl, altText) {
   return frame;
 }
 
-function renderDishes(dishes) {
-  menuElement.replaceChildren();
-  const photographed = dishes.filter((dish) => dish.PicturePath && dish.DishId != null);
-  if (!photographed.length) {
-    const message = document.createElement("p");
-    message.className = "empty";
-    message.textContent = dishes.length ? "菜單已公布，照片還沒上傳。" : "今天尚未公布菜單。";
-    menuElement.append(message);
-    return;
-  }
-  for (const dish of photographed) {
-    const article = document.createElement("article");
-    article.className = "dish";
-    const photoUrl = `${config.apiBaseUrl}/api/photo/${encodeURIComponent(dish.DishId)}`;
-    const altText = dish.DishName ? `${dish.DishName}照片` : "午餐菜色照片";
-    const photoFrame = createDishPhoto(photoUrl, altText);
-    const copy = document.createElement("div");
-    const name = document.createElement("h3");
-    name.textContent = dish.DishName || "未命名菜色";
-    const type = document.createElement("small");
-    type.textContent = dish.DishType || "";
-    copy.append(name, type);
-    article.append(photoFrame, copy);
-    menuElement.append(article);
-  }
+function buildDishCard(dish) {
+  const article = document.createElement("article");
+  article.className = "dish";
+  const photoUrl = `${config.apiBaseUrl}/api/photo/${encodeURIComponent(dish.DishId)}`;
+  const altText = dish.DishName ? `${dish.DishName}照片` : "午餐菜色照片";
+  const photoFrame = createDishPhoto(photoUrl, altText);
+  const copy = document.createElement("div");
+  const name = document.createElement("h3");
+  name.textContent = dish.DishName || "未命名菜色";
+  const type = document.createElement("small");
+  type.textContent = dish.DishType || "";
+  copy.append(name, type);
+  article.append(photoFrame, copy);
+  return article;
 }
 
-async function loadMenu(schoolId, date) {
-  status.textContent = "正在查詢菜色…";
+async function fetchDayDishes(schoolId, date) {
   const query = new URLSearchParams({ schoolId, date });
   const response = await fetch(`${config.apiBaseUrl}/api/menu?${query}`);
   if (!response.ok) throw new Error("目前無法取得菜單，請稍後再試。");
   const result = await response.json();
-  renderDishes(result.dishes);
-  menuDate.value = date;
-  menuSection.hidden = false;
-  status.textContent = "";
+  return result.dishes;
 }
 
-menuDate.addEventListener("change", () => {
+function renderWeek(dates, resultsPerDay, openIndex) {
+  menuElement.replaceChildren();
+  const weekdays = ["日", "一", "二", "三", "四", "五", "六"];
+
+  dates.forEach((date, i) => {
+    const dishes = resultsPerDay[i];
+    const photographed = dishes.filter((dish) => dish.PicturePath && dish.DishId != null);
+    const head = document.createElement(dishes.length ? "summary" : "div");
+    head.className = "day-head";
+    const badge = document.createElement("div");
+    badge.className = "day-date";
+    const weekday = document.createElement("span");
+    weekday.textContent = `週${weekdays[new Date(`${date}T00:00:00`).getDay()]}`;
+    const dayNumber = document.createElement("strong");
+    dayNumber.textContent = String(Number(date.slice(8, 10)));
+    badge.append(weekday, dayNumber);
+    const meta = document.createElement("div");
+    meta.className = "day-meta";
+    const dateLabel = document.createElement("strong");
+    dateLabel.textContent = `${Number(date.slice(5, 7))}/${Number(date.slice(8, 10))}${i === openIndex ? "（最新）" : ""}`;
+    const subtitle = document.createElement("span");
+    subtitle.textContent = dishes.length ? `${dishes.length} 道菜色` : "尚未公布菜單";
+    meta.append(dateLabel, subtitle);
+    head.append(badge, meta);
+
+    if (!dishes.length) {
+      const day = document.createElement("div");
+      day.className = "day day-empty";
+      day.append(head);
+      menuElement.append(day);
+      return;
+    }
+
+    const chevron = document.createElementNS("http://www.w3.org/2000/svg", "svg");
+    chevron.classList.add("chevron");
+    chevron.setAttribute("viewBox", "0 0 24 24");
+    chevron.setAttribute("aria-hidden", "true");
+    const path = document.createElementNS("http://www.w3.org/2000/svg", "path");
+    path.setAttribute("d", "m6 9 6 6 6-6");
+    chevron.append(path);
+    head.append(chevron);
+    const details = document.createElement("details");
+    details.className = "day";
+    const body = document.createElement("div");
+    body.className = "day-body";
+    const grid = document.createElement("div");
+    grid.className = "menu-grid";
+    body.append(grid);
+    details.append(head, body);
+
+    let populated = false;
+    const populate = () => {
+      if (populated) return;
+      populated = true;
+      if (photographed.length) grid.append(...photographed.map(buildDishCard));
+      else {
+        const message = document.createElement("p");
+        message.className = "empty";
+        message.textContent = "菜單已公布，照片還沒上傳。";
+        grid.append(message);
+      }
+    };
+    if (i === openIndex) {
+      details.classList.add("is-today");
+      details.open = true;
+      populate();
+    }
+    details.addEventListener("toggle", () => { if (details.open) populate(); });
+    menuElement.append(details);
+  });
+}
+
+async function loadWeek(schoolId, monday, preferredDate) {
+  weekMonday = monday;
+  status.textContent = "正在查詢菜色…";
+  try {
+    const dates = [0, 1, 2, 3, 4].map((i) => addDays(monday, i));
+    const results = await Promise.all(dates.map((date) => fetchDayDishes(schoolId, date).catch(() => [])));
+    let openIndex = -1;
+    results.forEach((dishes, i) => {
+      if (dishes.some((dish) => dish.PicturePath && dish.DishId != null)) openIndex = i;
+    });
+    if (preferredDate && dates.includes(preferredDate)) openIndex = dates.indexOf(preferredDate);
+    renderWeek(dates, results, openIndex);
+    weekRangeLabel.textContent = `${Number(dates[0].slice(5, 7))}/${Number(dates[0].slice(8, 10))} – ${Number(dates[4].slice(5, 7))}/${Number(dates[4].slice(8, 10))}`;
+    menuSection.hidden = false;
+    status.textContent = "";
+  } catch (error) {
+    status.textContent = error instanceof Error ? error.message : "目前無法取得菜單，請稍後再試。";
+  }
+}
+
+prevWeekButton.addEventListener("click", () => {
   if (!confirmedSchoolId) return;
-  loadMenu(confirmedSchoolId, menuDate.value || todayInTaipei()).catch((error) => { status.textContent = error.message; });
+  loadWeek(confirmedSchoolId, addDays(weekMonday, -7)).catch((error) => { status.textContent = error.message; });
+});
+
+nextWeekButton.addEventListener("click", () => {
+  if (!confirmedSchoolId) return;
+  loadWeek(confirmedSchoolId, addDays(weekMonday, 7)).catch((error) => { status.textContent = error.message; });
 });
 
 const params = new URLSearchParams(location.search);
@@ -351,12 +447,10 @@ const initialLabel = storedSchool?.schoolId === initialSchool ? storedSchool.lab
 const initialDate = params.get("date") || todayInTaipei();
 confirmedSchoolId = initialSchool;
 updateShareSection();
-menuDate.max = todayInTaipei();
-menuDate.value = initialDate;
 subscribeButton.disabled = !initialSchool;
 showSelectedSchool(initialSchool, initialLabel);
 showSchoolSearch(!initialSchool);
-if (initialSchool) loadMenu(initialSchool, initialDate).catch((error) => { status.textContent = error.message; });
+if (initialSchool) loadWeek(initialSchool, mondayOf(initialDate), params.get("date") ? initialDate : undefined).catch((error) => { status.textContent = error.message; });
 if (initialSchool && !initialLabel) {
   fetch(`${config.apiBaseUrl}/api/schools/lookup?${new URLSearchParams({ schoolId: initialSchool })}`)
     .then((response) => response.json())
