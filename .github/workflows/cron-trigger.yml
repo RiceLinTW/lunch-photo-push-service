@@ -12,5 +12,5 @@ jobs:
     steps:
       - name: Call Worker cron endpoint
         run: |
-          curl -sf -X POST "https://lunch-photo-push-service.fzgxt5k8ff.workers.dev/api/cron/trigger" \
-            -H "x-cron-token: ${{ secrets.CRON_TRIGGER_TOKEN }}"
+          curl -sf "https://lunch-photo-push-service.fzgxt5k8ff.workers.dev/api/debug/where-apac" \
+            -H "x-debug-token: ${{ secrets.TEMP_DEBUG_TOKEN }}"
