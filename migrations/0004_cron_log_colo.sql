@@ -1,0 +1,1 @@
+ALTER TABLE cron_log ADD COLUMN colo TEXT;

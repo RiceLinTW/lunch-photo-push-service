@@ -19,6 +19,7 @@ export interface CronDependencies {
   fetch: typeof fetch;
   push: typeof sendWebPush;
   now: Date;
+  colo: string;
 }
 
 export function taipeiDate(now = new Date()): string {
@@ -75,6 +76,7 @@ export async function checkMenusAndNotify(
   const fetcher = dependencies.fetch ?? fetch;
   const push = dependencies.push ?? sendWebPush;
   const now = dependencies.now ?? new Date();
+  const colo = dependencies.colo ?? null;
   const date = taipeiDate(now);
   let schoolsChecked = 0;
   let notified = 0;
@@ -130,7 +132,7 @@ export async function checkMenusAndNotify(
     runError = error instanceof Error ? error.message : String(error);
   } finally {
     await env.DB.prepare(
-      "INSERT INTO cron_log (ran_at, schools_checked, notified, error) VALUES (?, ?, ?, ?)",
-    ).bind(new Date().toISOString(), schoolsChecked, notified, runError).run();
+      "INSERT INTO cron_log (ran_at, schools_checked, notified, error, colo) VALUES (?, ?, ?, ?, ?)",
+    ).bind(new Date().toISOString(), schoolsChecked, notified, runError, colo).run();
   }
 }

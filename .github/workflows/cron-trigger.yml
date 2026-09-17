@@ -1,9 +1,11 @@
 name: Trigger menu check
 
 on:
-  # cron-job.org is the real scheduler now (more reliable than GitHub's, and
-  # running both doubled up requests to the source site). Kept as a manual
-  # trigger only, for testing.
+  # Cloudflare's own native Cron Trigger is the real scheduler now (see
+  # wrangler.toml [triggers]) - it doesn't carry the "known automation IP"
+  # reputation that made the source challenge every request triggered from
+  # here or from cron-job.org, even with the outbound fetch pinned to a
+  # working APAC colo. Kept as a manual trigger only, for testing.
   workflow_dispatch: {}
 
 jobs:
@@ -12,5 +14,5 @@ jobs:
     steps:
       - name: Call Worker cron endpoint
         run: |
-          curl -sf "https://lunch-photo-push-service.fzgxt5k8ff.workers.dev/api/debug/where-apac" \
-            -H "x-debug-token: ${{ secrets.TEMP_DEBUG_TOKEN }}"
+          curl -sf -X POST "https://lunch-photo-push-service.fzgxt5k8ff.workers.dev/api/cron/trigger" \
+            -H "x-cron-token: ${{ secrets.CRON_TRIGGER_TOKEN }}"

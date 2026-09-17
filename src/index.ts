@@ -5,11 +5,15 @@ export interface Env {
   VAPID_SUBJECT: string;
   FRONTEND_URL: string;
   CRON_TRIGGER_TOKEN: string;
+  APAC_FETCHER: DurableObjectNamespace;
 }
 
+import { apacFetch } from "./apac-fetcher.ts";
 import { checkMenusAndNotify, fetchSchoolMenu } from "./menu.ts";
 import { proxyPhoto } from "./photo.ts";
 import { lookupSchool, resolveSchool, searchSchools } from "./schools.ts";
+
+export { ApacFetcher } from "./apac-fetcher.ts";
 
 interface PushSubscriptionInput {
   endpoint: string;
@@ -108,7 +112,7 @@ export async function triggerCron(
   const token = request.headers.get("x-cron-token");
   if (!env.CRON_TRIGGER_TOKEN || token !== env.CRON_TRIGGER_TOKEN) return json({ ok: false, error: "Unauthorized" }, 401);
   try {
-    await checker(env, env.FRONTEND_URL);
+    await checker(env, env.FRONTEND_URL, { colo: request.cf?.colo as string | undefined, fetch: apacFetch(env.APAC_FETCHER) });
     return json({ ok: true });
   } catch (error) {
     const message = error instanceof Error ? error.message : String(error);
@@ -147,4 +151,7 @@ export async function handleRequest(request: Request, env: Env): Promise<Respons
 
 export default {
   fetch: handleRequest,
+  async scheduled(_controller, env, ctx) {
+    ctx.waitUntil(checkMenusAndNotify(env, env.FRONTEND_URL, { fetch: apacFetch(env.APAC_FETCHER) }));
+  },
 } satisfies ExportedHandler<Env>;
