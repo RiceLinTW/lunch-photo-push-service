@@ -1,6 +1,6 @@
 import assert from "node:assert/strict";
 import test from "node:test";
-import { lookupSchool, resolveSchool, searchSchools } from "../src/schools.ts";
+import { lookupSchool, randomSchool, resolveSchool, searchSchools } from "../src/schools.ts";
 
 const schools = [
   { school_code: "024701", school_name: "縣立清溝國小", county: "宜蘭縣" },
@@ -113,4 +113,39 @@ test("lookup returns ok:false for a schoolId with no matching directory entry", 
 test("lookup requires a schoolId", async () => {
   const response = await lookupSchool(new Request("https://worker.test/api/schools/lookup"), lookupDatabase());
   assert.equal(response.status, 400);
+});
+
+class RandomSchoolStatement {
+  row: typeof schools[number] | null;
+  constructor(row: typeof schools[number] | null) { this.row = row; }
+  async all<T>() {
+    return { results: this.row ? [{ ...this.row, school_id: this.row.school_code }] as T[] : [] as T[] };
+  }
+}
+
+function randomSchoolDatabase(row: typeof schools[number] | null): D1Database {
+  return { prepare: (sql: string) => {
+    assert.match(sql, /FROM verified_school_ids v/);
+    assert.match(sql, /JOIN school_directory d ON v\.school_code = d\.school_code/);
+    assert.match(sql, /ORDER BY RANDOM\(\)/);
+    assert.match(sql, /LIMIT 1/);
+    return new RandomSchoolStatement(row);
+  } } as unknown as D1Database;
+}
+
+test("random returns a verified school with its joined directory fields", async () => {
+  const response = await randomSchool(randomSchoolDatabase(schools[1]));
+  assert.equal(response.status, 200);
+  assert.deepEqual(await response.json(), {
+    ok: true,
+    school_id: "333609",
+    school_name: "市立公館國小",
+    county: "臺北市",
+  });
+});
+
+test("random returns 404 when no verified schools are available", async () => {
+  const response = await randomSchool(randomSchoolDatabase(null));
+  assert.equal(response.status, 404);
+  assert.deepEqual(await response.json(), { ok: false, error: "No schools available" });
 });

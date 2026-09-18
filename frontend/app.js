@@ -1,5 +1,5 @@
 const config = globalThis.APP_CONFIG;
-const SW_VERSION = "5";
+const SW_VERSION = "6";
 const queryInput = document.querySelector("#school-query");
 const resultsElement = document.querySelector("#school-results");
 const directoryStatus = document.querySelector("#directory-status");
@@ -21,6 +21,10 @@ const copyLinkButton = document.querySelector("#copy-link");
 const showQrButton = document.querySelector("#show-qr");
 const shareStatus = document.querySelector("#share-status");
 const qrContainer = document.querySelector("#qr-code");
+const showRandomSchoolButton = document.querySelector("#show-random-school");
+const randomSchoolStatus = document.querySelector("#random-school-status");
+const randomSchoolLabel = document.querySelector("#random-school-label");
+const randomSchoolMenu = document.querySelector("#random-school-menu");
 
 let confirmedSchoolId = "";
 let weekMonday = "";
@@ -337,6 +341,35 @@ async function fetchDayDishes(schoolId, date) {
   const result = await response.json();
   return result.dishes;
 }
+
+showRandomSchoolButton.addEventListener("click", async () => {
+  showRandomSchoolButton.disabled = true;
+  randomSchoolStatus.textContent = "正在挑選學校…";
+  randomSchoolLabel.hidden = true;
+  randomSchoolMenu.replaceChildren();
+  try {
+    const response = await fetch(`${config.apiBaseUrl}/api/schools/random`);
+    const result = await response.json();
+    if (!response.ok || !result.ok) throw new Error("目前無法取得隨機學校，請稍後再試。");
+    randomSchoolLabel.textContent = `${result.county} ${result.school_name}`;
+    randomSchoolLabel.hidden = false;
+    const dishes = await fetchDayDishes(result.school_id, todayInTaipei());
+    const photographed = dishes.filter((dish) => dish.PicturePath && dish.DishId != null);
+    if (photographed.length) {
+      randomSchoolMenu.append(...photographed.map(buildDishCard));
+    } else {
+      const message = document.createElement("p");
+      message.className = "empty";
+      message.textContent = dishes.length ? "菜單已公布，照片還沒上傳。" : "今天尚未公布菜單。";
+      randomSchoolMenu.append(message);
+    }
+    randomSchoolStatus.textContent = "";
+  } catch (error) {
+    randomSchoolStatus.textContent = error instanceof Error ? error.message : "目前無法取得隨機學校，請稍後再試。";
+  } finally {
+    showRandomSchoolButton.disabled = false;
+  }
+});
 
 function renderWeek(dates, resultsPerDay, openIndex) {
   menuElement.replaceChildren();

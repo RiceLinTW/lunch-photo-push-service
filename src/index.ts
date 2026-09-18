@@ -11,7 +11,7 @@ export interface Env {
 import { apacFetch } from "./apac-fetcher.ts";
 import { checkMenusAndNotify, fetchSchoolMenu } from "./menu.ts";
 import { proxyPhoto } from "./photo.ts";
-import { lookupSchool, resolveSchool, searchSchools } from "./schools.ts";
+import { lookupSchool, randomSchool, resolveSchool, searchSchools } from "./schools.ts";
 
 export { ApacFetcher } from "./apac-fetcher.ts";
 
@@ -128,6 +128,7 @@ export async function handleRequest(request: Request, env: Env): Promise<Respons
   if (request.method === "POST" && pathname === "/api/unsubscribe") return unsubscribe(request, env.DB);
   if (request.method === "POST" && pathname === "/api/cron/trigger") return triggerCron(request, env);
   if (request.method === "GET" && pathname === "/api/schools/search") return searchSchools(request, env.DB);
+  if (request.method === "GET" && pathname === "/api/schools/random") return randomSchool(env.DB);
   if (request.method === "POST" && pathname === "/api/schools/resolve") return resolveSchool(request, env.DB);
   if (request.method === "GET" && pathname === "/api/schools/lookup") return lookupSchool(request, env.DB);
   if (request.method === "GET" && pathname.startsWith("/api/photo/")) {

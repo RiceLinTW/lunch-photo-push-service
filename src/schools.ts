@@ -4,6 +4,10 @@ interface SchoolDirectoryRow {
   county: string;
 }
 
+interface RandomSchoolRow extends SchoolDirectoryRow {
+  school_id: string;
+}
+
 const JSON_HEADERS = {
   "content-type": "application/json; charset=utf-8",
   "access-control-allow-origin": "*",
@@ -48,6 +52,17 @@ export async function lookupSchool(request: Request, db: D1Database): Promise<Re
   const row = result.results[0];
   if (!row) return json({ ok: false });
   return json({ ok: true, school_name: row.school_name, county: row.county });
+}
+
+export async function randomSchool(db: D1Database): Promise<Response> {
+  const result = await db.prepare(`SELECT v.school_code, v.school_id, d.school_name, d.county
+    FROM verified_school_ids v
+    JOIN school_directory d ON v.school_code = d.school_code
+    ORDER BY RANDOM()
+    LIMIT 1`).all<RandomSchoolRow>();
+  const row = result.results[0];
+  if (!row) return json({ ok: false, error: "No schools available" }, 404);
+  return json({ ok: true, school_id: row.school_id, school_name: row.school_name, county: row.county });
 }
 
 function taipeiDate(now: Date): string {

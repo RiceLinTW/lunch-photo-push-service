@@ -1,5 +1,5 @@
-const CACHE_NAME = "lunch-photo-shell-v5";
-const APP_SHELL = ["./", "index.html", "styles.css?v=5", "config.js?v=5", "app.js?v=5", "manifest.json", "icons/icon.svg"];
+const CACHE_NAME = "lunch-photo-shell-v6";
+const APP_SHELL = ["./", "index.html", "styles.css?v=6", "config.js?v=6", "app.js?v=6", "manifest.json", "icons/icon.svg"];
 
 self.addEventListener("install", (event) => {
   event.waitUntil(
