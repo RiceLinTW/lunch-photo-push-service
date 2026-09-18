@@ -151,7 +151,4 @@ export async function handleRequest(request: Request, env: Env): Promise<Respons
 
 export default {
   fetch: handleRequest,
-  async scheduled(_controller, env, ctx) {
-    ctx.waitUntil(checkMenusAndNotify(env, env.FRONTEND_URL, { fetch: apacFetch(env.APAC_FETCHER) }));
-  },
 } satisfies ExportedHandler<Env>;
